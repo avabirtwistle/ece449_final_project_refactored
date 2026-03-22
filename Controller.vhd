@@ -47,20 +47,6 @@ architecture behavioral of controller is
     -- FSM State Encoding
     type state_type is (RESET_STATE, DECODE_STATE);
     signal current_state : state_type := RESET_STATE;
-
-    -- Opcode constants from ISA table
-    constant OP_NOP      : std_logic_vector(6 downto 0) := "0000000"; -- 0
-    constant OP_ADD      : std_logic_vector(6 downto 0) := "0000001"; -- 1
-    constant OP_SUB      : std_logic_vector(6 downto 0) := "0000010"; -- 2
-    constant OP_MUL      : std_logic_vector(6 downto 0) := "0000011"; -- 3
-    constant OP_NAND     : std_logic_vector(6 downto 0) := "0000100"; -- 4
-    constant OP_SHL      : std_logic_vector(6 downto 0) := "0000101"; -- 5
-    constant OP_SHR      : std_logic_vector(6 downto 0) := "0000110"; -- 6
-    constant OP_TEST     : std_logic_vector(6 downto 0) := "0000111"; -- 7
-    constant OP_OUT_PORT : std_logic_vector(6 downto 0) := "0100000"; -- 32
-    constant OP_IN_PORT  : std_logic_vector(6 downto 0) := "0100001"; -- 33
-
-    -- ALU mode encoding
 begin
 
     -- Sequential FSM.. FRaliing edge clock for data path to correctly latch data
@@ -204,7 +190,87 @@ begin
                         in_p_EN   <= '1';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        
+                    when OP_BRR => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                      
+                      when OP_BRR_N => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                     
+                       when OP_BRR_Z => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                     
+                       when OP_BR => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                    
+                      when OP_BR_N => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                   
+                     when OP_BR_Z => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                     
+                       when OP_BR_SUB =>                  
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                       
+                    when OP_RETURN => 
+                        mode_ALU  <= 
+                        src_ALU   <= 
+                        wr_en_MEM <=
+                        wr_en_REG <= 
+                        sel_WB    <= 
+                        in_p_EN   <= 
+                        out_p_EN  <= 
+                        pc_src    <= 
+                        
                     when others =>
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
