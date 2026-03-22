@@ -1,36 +1,16 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 02/02/2026 04:35:50 PM
--- Design Name:
--- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity Alu is
     port(
-        a           : in  std_logic_vector(15 downto 0); -- first operand for ALU operations
-        b           : in  std_logic_vector(15 downto 0); -- second operand for ALU operations
-        result      : out std_logic_vector(15 downto 0); -- output of the ALU operation
-        control_sel : in  std_logic_vector(2 downto 0); -- selects the ALU operation
-        Carry       : out std_logic; -- carry flag for addition and subtraction
-        Zero        : out std_logic; -- zero flag for result of ALU operation
-        Negative    : out std_logic -- negative flag for result of ALU operation
+        a           : in  std_logic_vector(15 downto 0);
+        b           : in  std_logic_vector(15 downto 0);
+        result      : out std_logic_vector(15 downto 0);
+        control_sel : in  std_logic_vector(2 downto 0);
+        Carry       : out std_logic;
+        Zero        : out std_logic;
+        Negative    : out std_logic
     );
 end Alu;
 
@@ -49,7 +29,7 @@ begin
         temp_result := (others => '0');
         Carry       <= '0';
 
-        case control_sel is -- determines which operation to perform
+        case control_sel is
 
             -- 000 = NOP
             when "000" =>

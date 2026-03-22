@@ -1,23 +1,3 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 02/02/2026 04:35:50 PM
--- Design Name:
--- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -31,8 +11,8 @@ entity rom is
         clk   : in  std_logic;
         rst   : in  std_logic;
         ena   : in  std_logic;
-        addra : in  std_logic_vector(8 downto 0); -- 9-bit address input to access 512 words (16 bits each)
-        douta : out std_logic_vector(15 downto 0) -- 16-bit data output from ROM
+        addra : in  std_logic_vector(5 downto 0);
+        douta : out std_logic_vector(15 downto 0)
     );
 end rom;
 
@@ -41,14 +21,14 @@ begin
 
     xpm_memory_sprom_inst : xpm_memory_sprom
     generic map (
-        ADDR_WIDTH_A         => 9, -- address width (number of bits used to address memory depth)
+        ADDR_WIDTH_A         => 6,
         AUTO_SLEEP_TIME      => 0,
         ECC_MODE             => "no_ecc",
         MEMORY_INIT_FILE     => "FormatA_Test.mem",
         MEMORY_INIT_PARAM    => "0",
         MEMORY_OPTIMIZATION  => "true",
         MEMORY_PRIMITIVE     => "distributed",
-        MEMORY_SIZE          => 8192, -- size in bits
+        MEMORY_SIZE          => 1024,
         MESSAGE_CONTROL      => 0,
         READ_DATA_WIDTH_A    => 16,
         READ_LATENCY_A       => 1,

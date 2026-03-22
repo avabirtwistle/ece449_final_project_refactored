@@ -36,18 +36,14 @@ entity fetch is
     );
 end fetch;
 
-architecture Behavioral of fetch is 
-    -- internal signal to connect the program counter output to the ROM address input
-    signal pc_sig : std_logic_vector(15 downto 0);
 begin
-
     -- instantiate the program counter and connect the ports appropriately
     program_counter: entity work.program_counter
         port map ( 
             clk => clk,
             reset => reset,
             mode => mode,
-            out_pc => pc, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
+            out_pc => out_pc, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
             in_pc => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
         );
 

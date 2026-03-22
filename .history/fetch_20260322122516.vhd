@@ -26,7 +26,6 @@ entity fetch is
     port(
         clk     : in  std_logic;
         reset   : in  std_logic;
-        rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
         mode   : in  std_logic_vector(1 downto 0); -- selects the mode for the program counter (increment, loading immediate value, etc.)
         in_pc   : in  std_logic_vector(15 downto 0); -- the immediate value to load into the program counter when mode is PC_IM_VALUE
 
@@ -36,27 +35,19 @@ entity fetch is
     );
 end fetch;
 
-architecture Behavioral of fetch is 
-    -- internal signal to connect the program counter output to the ROM address input
-    signal pc_sig : std_logic_vector(15 downto 0);
 begin
-
     -- instantiate the program counter and connect the ports appropriately
     program_counter: entity work.program_counter
         port map ( 
             clk => clk,
             reset => reset,
             mode => mode,
-            out_pc => pc, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
+            out_pc => out_pc, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
             in_pc => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
-        );
+);
 
 -- Instantiate the ROM here and connect the ports appropriately
     rom: entity work.rom
-     port map(
-        clk => clk,
-        rst => reset,
-        ena   => rom_ena,
-        addra => out_pc(8 downto 0), -- 9-bit address input to access 512 words (16 bits each)
-        douta => instruction -- 16-bit data output from ROM
-    );
+        port map (
+            clk => clk
+        )
