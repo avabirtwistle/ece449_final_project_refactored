@@ -4,9 +4,16 @@ use ieee.numeric_std.all;
 
 package constants_package is 
 
-    -- ALU operation modes
-    constant ALU_ADD : std_logic_vector(2 downto 0) := "000";
-    constant ALU_SUB : std_logic_vector(2 downto 0) := "001";
+    -- ALU operation modes 
+    -- IF this gets changed Please comment it out instead of completely removing it
+    constant ALU_NOP   : std_logic_vector(2 downto 0) := "000";
+    constant ALU_ADD   : std_logic_vector(2 downto 0) := "001";
+    constant ALU_SUB   : std_logic_vector(2 downto 0) := "010";
+    constant ALU_MUL   : std_logic_vector(2 downto 0) := "011";
+    constant ALU_NAND  : std_logic_vector(2 downto 0) := "100";
+    constant ALU_SHL   : std_logic_vector(2 downto 0) := "101";
+    constant ALU_SHR   : std_logic_vector(2 downto 0) := "110";
+    constant ALU_TEST  : std_logic_vector(2 downto 0) := "111";
     -- TODO: add more ALU operation modes as needed
 
     -- TODO: add control signal constants
@@ -17,5 +24,16 @@ package constants_package is
     constant PC_NOP           : std_logic_vector(1 downto 0) := "10"; -- hold the current value of the PC (no update)
     constant PC_TBD         : std_logic_vector(1 downto 0) := "11"; -- to be determined (for future use, if needed)
 
+    -- Opcode constants from ISA table
+    constant OP_NOP      : std_logic_vector(6 downto 0) := "0000000"; -- 0
+    constant OP_ADD      : std_logic_vector(6 downto 0) := "0000001"; -- 1
+    constant OP_SUB      : std_logic_vector(6 downto 0) := "0000010"; -- 2
+    constant OP_MUL      : std_logic_vector(6 downto 0) := "0000011"; -- 3
+    constant OP_NAND     : std_logic_vector(6 downto 0) := "0000100"; -- 4
+    constant OP_SHL      : std_logic_vector(6 downto 0) := "0000101"; -- 5
+    constant OP_SHR      : std_logic_vector(6 downto 0) := "0000110"; -- 6
+    constant OP_TEST     : std_logic_vector(6 downto 0) := "0000111"; -- 7
+    constant OP_OUT_PORT : std_logic_vector(6 downto 0) := "0100000"; -- 32
+    constant OP_IN_PORT  : std_logic_vector(6 downto 0) := "0100001"; -- 33
 
 end package constants_package;
