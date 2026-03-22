@@ -40,17 +40,12 @@ begin
     begin
         reset <= '1';
         wait for 20 ns;
+
         reset <= '0';
+        mode <= "00";  -- increment mode
+        rom_ena <= '1';
 
-        mode <= "00";
-        wait for 40 ns;
-
-        in_pc <= x"0008";
-        mode <= "01";
-        wait for 10 ns;
-
-        mode <= "00";
-        wait for 40 ns;
+        wait for 200 ns;
 
         wait;
     end process;
