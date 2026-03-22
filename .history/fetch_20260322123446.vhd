@@ -36,19 +36,14 @@ entity fetch is
     );
 end fetch;
 
-architecture Behavioral of fetch is 
-    -- internal signal to connect the program counter output to the ROM address input
-    signal pc_sig_internal : std_logic_vector(15 downto 0);
-    signal instruction_sig_internal : std_logic_vector(15 downto 0);
 begin
-
     -- instantiate the program counter and connect the ports appropriately
     program_counter: entity work.program_counter
         port map ( 
             clk => clk,
             reset => reset,
             mode => mode,
-            out_pc => pc_sig_internal, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
+            out_pc => out_pc, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
             in_pc => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
         );
 
@@ -58,11 +53,6 @@ begin
         clk => clk,
         rst => reset,
         ena   => rom_ena,
-        addra => pc_sig_internal(9 downto 1), -- 9-bit address input to access 512 words (16 bits each) but we need pc=0b0001 to map to 0b0000 in rom and pc=0b00010 to map to 0b0001 in rom (drop lsb)
-        douta => instruction_sig_internal -- 16-bit data output from ROM
+        addra => out_pc(8 downto 0), -- 9-bit address input to access 512 words (16 bits each)
+        douta => instruction -- 16-bit data output from ROM
     );
-
-    pc <= pc_sig_internal; -- connect the internal signal to the output port to pass the current value of the program counter to the IF/ID pipeline register
-    instruction <= instruction_sig_internal; -- connect the internal signal to the output port to pass the fetched instruction to the IF/ID pipeline register
-
-end Behavioral;
