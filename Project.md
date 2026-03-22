@@ -27,3 +27,5 @@ specified by a 2 bit logic vector:
 - Since we need to increment the program counters current value by 2, we need an intermediate signal since VHDL will not allow us to read an output signal
 - The addressing/incementing of the program counter and how this translates to the ROM addressing must be accounted for
 -   To do this, the LSB is dropped for the internal signal, without dropping this LSB we didn't fetch all the instructions in order
+
+<img width="1450" height="623" alt="image" src="https://github.com/user-attachments/assets/cab58f2f-27e4-4128-9dd5-8c8e08d4c3a5" />
