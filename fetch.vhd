@@ -58,7 +58,7 @@ begin
         clk => clk,
         rst => reset,
         ena   => rom_ena,
-        addra => pc_sig_internal(8 downto 0), -- 9-bit address input to access 512 words (16 bits each)
+        addra => pc_sig_internal(9 downto 1), -- 9-bit address input to access 512 words (16 bits each) but we need pc=0b0001 to map to 0b0000 in rom and pc=0b00010 to map to 0b0001 in rom (drop lsb)
         douta => instruction_sig_internal -- 16-bit data output from ROM
     );
 
