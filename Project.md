@@ -25,4 +25,5 @@ specified by a 2 bit logic vector:
   - Any calculations on the value (for example adding offset) is performed externally before inputing this address to the PC
 - An output signal for reading the value in the program counter is also needed
 - Since we need to increment the program counters current value by 2, we need an intermediate signal since VHDL will not allow us to read an output signal
-- 
+- The addressing/incementing of the program counter and how this translates to the ROM addressing must be accounted for
+-   To do this, the LSB is dropped for the internal signal, without dropping this LSB we didn't fetch all the instructions in order
