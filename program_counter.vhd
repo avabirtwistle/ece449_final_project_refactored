@@ -1,4 +1,3 @@
-----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
 -- 
@@ -26,7 +25,9 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use IEEE.numeric_std.all;
+library work;
+use work.constants_package.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -43,7 +44,7 @@ Port (
     mode: in std_logic_vector(1 downto 0);
     in_pc: in std_logic_vector(15 downto 0); -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
 
-    out_pc: out std_logic_vector(15 downto 0); -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
+    out_pc: out std_logic_vector(15 downto 0) -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
 );
 end program_counter;
 
