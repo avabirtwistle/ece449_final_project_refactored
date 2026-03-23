@@ -26,7 +26,7 @@ architecture Behavioral of Top_Level_CPU is
                                   -- .alu_mode, .alu_src, .wr_en_MEM, .reg_write, .wb_src
     signal EX_MEM_reg : EX_MEM;  -- .alu_result, .rd_data2, .dest_reg, .pc_plus2,
                                   -- .wr_en_MEM, .reg_write, .wb_src
-    signal MEM_WB_reg : MEM_WB;  -- .alu_result, .mem_data, .dest_reg, .pc_plus2, .reg_write, .wb_src
+    signal MEM_WB_reg : MEM_WB;  -- .alu_result, .mem_data, .dest_reg, .pc_plus2, .reg_write, .wb_src, .in_p_EN
 
     ---------------------------------------------------------------
     -- FETCH STAGE SIGNALS
@@ -107,8 +107,8 @@ begin
     -- Register file write (from MEM/WB stage)
     w_addr_rf <= MEM_WB_reg.dest_reg;
     wr_en_rf  <= MEM_WB_reg.reg_write;
-    -- TODO: mux w_data_rf between wb_data and in_port when in_p_EN is active
-    w_data_rf <= wb_data;
+    -- IN instruction mux: if in_p_EN reached WB stage, write in_port directly to reg file
+    w_data_rf <= in_port when MEM_WB_reg.in_p_EN = '1' else wb_data;
 
     -- Register file read (decode from IF/ID instruction)
     -- r_addr0_rf mux:
@@ -183,6 +183,7 @@ begin
             ID_EX_reg.wr_en_MEM <= '0';
             ID_EX_reg.reg_write <= '0';
             ID_EX_reg.wb_src    <= WB_ALU;
+            ID_EX_reg.in_p_EN   <= '0';
         elsif rising_edge(clk) then
             ID_EX_reg.rd_data1  <= r_data0_rf;
             ID_EX_reg.rd_data2  <= r_data1_rf;
@@ -196,6 +197,7 @@ begin
             ID_EX_reg.wr_en_MEM <= wr_en_MEM;
             ID_EX_reg.reg_write <= wr_en_REG;
             ID_EX_reg.wb_src    <= sel_WB;
+            ID_EX_reg.in_p_EN   <= in_p_EN;
         end if;
     end process;
 
@@ -210,6 +212,7 @@ begin
             EX_MEM_reg.wr_en_MEM  <= '0';
             EX_MEM_reg.reg_write  <= '0';
             EX_MEM_reg.wb_src     <= WB_ALU;
+            EX_MEM_reg.in_p_EN    <= '0';
         elsif rising_edge(clk) then
             EX_MEM_reg.alu_result <= alu_result;
             EX_MEM_reg.rd_data2   <= ID_EX_reg.rd_data2;
@@ -218,6 +221,7 @@ begin
             EX_MEM_reg.wr_en_MEM  <= ID_EX_reg.wr_en_MEM;
             EX_MEM_reg.reg_write  <= ID_EX_reg.reg_write;
             EX_MEM_reg.wb_src     <= ID_EX_reg.wb_src;
+            EX_MEM_reg.in_p_EN    <= ID_EX_reg.in_p_EN;
         end if;
     end process;
 
@@ -231,13 +235,15 @@ begin
             MEM_WB_reg.pc_plus2   <= (others => '0');
             MEM_WB_reg.reg_write  <= '0';
             MEM_WB_reg.wb_src     <= WB_ALU;
+            MEM_WB_reg.in_p_EN    <= '0';
         elsif rising_edge(clk) then
             MEM_WB_reg.alu_result <= EX_MEM_reg.alu_result;
-            MEM_WB_reg.mem_data   <= ram_douta; -- TODO: mux with in_port for memory-mapped IN
+            MEM_WB_reg.mem_data   <= ram_douta;
             MEM_WB_reg.dest_reg   <= EX_MEM_reg.dest_reg;
             MEM_WB_reg.pc_plus2   <= EX_MEM_reg.pc_plus2;
             MEM_WB_reg.reg_write  <= EX_MEM_reg.reg_write;
             MEM_WB_reg.wb_src     <= EX_MEM_reg.wb_src;
+            MEM_WB_reg.in_p_EN    <= EX_MEM_reg.in_p_EN;
         end if;
     end process;
 
