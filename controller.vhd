@@ -38,7 +38,8 @@ entity controller is
 
         -- Branch / PC Control
         pc_src      : out std_logic;
-        pc_reset    : out std_logic_vector(15 downto 0)
+        pc_mode       : out std_logic_vector(1 downto 0);
+        pc_reset : out std_logic;
     );
 end controller;
 
@@ -75,18 +76,18 @@ begin
         in_p_EN   <= '0';
         out_p_EN  <= '0';
         pc_src    <= '0';
-        pc_reset  <= (others => '0');
-
+        pc_mode <= PC_INCREMENT;
+        pc_reset <= '0';
         case current_state is
 
             -- RESET
             when RESET_STATE =>
                 if boot_mode = '0' then
-                    pc_reset <= x"0000";
+                    pc_mode <= PC_BOOT;
                 else
-                    pc_reset <= x"0002";
+                    pc_mode <= PC_INCREMENT;
                 end if;
-
+                pc_reset<='1';
             -- DECODE
             when DECODE_STATE =>
                 case opcode is
