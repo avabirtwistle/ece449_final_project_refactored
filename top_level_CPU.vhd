@@ -110,10 +110,14 @@ begin
     -- TODO: mux w_data_rf between wb_data and in_port when in_p_EN is active
     w_data_rf <= wb_data;
 
-    -- Register file read (decode from IF/ID instruction) 
-    r_addr0_rf <= IF_ID_reg.instruction(8 downto 6); -- ra
+    -- Register file read (decode from IF/ID instruction)
+    -- r_addr0_rf mux:
+    --   RETURN  -> R7 (link register holds return address)
+    --   default -> Ra from instruction bits [8:6]
+    r_addr0_rf <= LINK_REG when IF_ID_reg.instruction(15 downto 9) = OP_RETURN
+                  else IF_ID_reg.instruction(8 downto 6);
     r_addr1_rf <= IF_ID_reg.instruction(2 downto 0); -- rb
-    -- TODO: r_addr0_rf mux -> when OUT instruction, read ra instead of rd
+    -- TODO: also mux for OUT instruction (reads ra, not rd)
 
     -- PC mode: tell fetch whether to increment or jump to branch target
     pc_mode <= PC_IM_VALUE when pc_src = '1' else PC_INCREMENT;
@@ -183,7 +187,9 @@ begin
             ID_EX_reg.rd_data1  <= r_data0_rf;
             ID_EX_reg.rd_data2  <= r_data1_rf;
             ID_EX_reg.imm       <= imm_extended;
-            ID_EX_reg.dest_reg  <= IF_ID_reg.instruction(8 downto 6); -- ra
+            -- BR_SUB writes return address to R7 (link register), not Ra
+            ID_EX_reg.dest_reg  <= LINK_REG when IF_ID_reg.instruction(15 downto 9) = OP_BR_SUB
+                                    else IF_ID_reg.instruction(8 downto 6);
             ID_EX_reg.pc_plus2  <= IF_ID_reg.pc_plus2;
             ID_EX_reg.alu_mode  <= mode_ALU;
             ID_EX_reg.alu_src   <= src_ALU;

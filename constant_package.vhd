@@ -16,6 +16,9 @@ package constants_package is
     constant ALU_TEST       : std_logic_vector(2 downto 0) := "111";
     -- TODO: add more ALU operation modes as needed
 
+    -- Link register (R7) - holds return address for BR_SUB / RETURN
+    constant LINK_REG : std_logic_vector(2 downto 0) := "111"; -- R7
+
     -- Write-back source select (2-bit to support 3 sources)
     constant WB_ALU  : std_logic_vector(1 downto 0) := "00"; -- write ALU result to register
     constant WB_MEM  : std_logic_vector(1 downto 0) := "01"; -- write memory read data to register
