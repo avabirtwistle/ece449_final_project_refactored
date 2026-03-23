@@ -25,7 +25,7 @@ package pipeline_registers is
 
         -- ── Write-back control signals (riding along to WB) ─
         reg_write : std_logic;
-        wb_src    : std_logic;
+        wb_src    : std_logic_vector(1 downto 0); -- WB_ALU / WB_MEM / WB_PC2
     end record;
 
     type EX_MEM is record
@@ -38,11 +38,11 @@ package pipeline_registers is
         wr_en_MEM  : std_logic;
 
         -- ── Write-back control signals (riding along to WB) ─
-        reg_write  : std_logic;                     -- '1' = write to reg file
-        wb_src     : std_logic;                     -- '0'=ALU result, '1'=mem data
+        reg_write  : std_logic;                          -- '1' = write to reg file
+        wb_src     : std_logic_vector(1 downto 0);       -- WB_ALU / WB_MEM / WB_PC2
 
     end record;
-    
+
     type MEM_WB is record
 
         alu_result : std_logic_vector(15 downto 0); -- ALU result (used if wb_src = '0')
@@ -50,8 +50,8 @@ package pipeline_registers is
         dest_reg   : std_logic_vector(2  downto 0); -- destination register index
         pc_plus2   : std_logic_vector(15 downto 0); -- PC+2 (for BR_SUB return address write-back)
 
-        reg_write  : std_logic; -- consumed at this stage: '1' = write to register file
-        wb_src     : std_logic; -- consumed at this stage: '0' = ALU result, '1' = mem data
+        reg_write  : std_logic;                    -- consumed at this stage: '1' = write to register file
+        wb_src     : std_logic_vector(1 downto 0); -- consumed at this stage: WB_ALU / WB_MEM / WB_PC2
 
     end record;
 

@@ -16,7 +16,10 @@ package constants_package is
     constant ALU_TEST       : std_logic_vector(2 downto 0) := "111";
     -- TODO: add more ALU operation modes as needed
 
-    -- TODO: add control signal constants
+    -- Write-back source select (2-bit to support 3 sources)
+    constant WB_ALU  : std_logic_vector(1 downto 0) := "00"; -- write ALU result to register
+    constant WB_MEM  : std_logic_vector(1 downto 0) := "01"; -- write memory read data to register
+    constant WB_PC2  : std_logic_vector(1 downto 0) := "10"; -- write PC+2 to register (BR_SUB return address)
 
     -- program counter modes
     constant PC_INCREMENT   : std_logic_vector(1 downto 0) := "00"; -- increment the PC by 2 to point to the next instruction

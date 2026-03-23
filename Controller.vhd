@@ -30,7 +30,7 @@ entity controller is
 
         -- Write Back Control Signals
         wr_en_REG   : out std_logic;
-        sel_WB      : out std_logic;
+        sel_WB      : out std_logic_vector(1 downto 0);
 
         -- I/O Port Control Signals
         in_p_EN     : out std_logic;
@@ -71,7 +71,7 @@ begin
         src_ALU   <= '0';
         wr_en_MEM <= '0';
         wr_en_REG <= '0';
-        sel_WB    <= '0';
+        sel_WB    <= WB_ALU;
         in_p_EN   <= '0';
         out_p_EN  <= '0';
         pc_src    <= '0';
@@ -96,7 +96,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -106,7 +106,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -116,7 +116,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -126,7 +126,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -136,7 +136,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -146,7 +146,7 @@ begin
                         src_ALU   <= '1';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -156,7 +156,7 @@ begin
                         src_ALU   <= '1';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -166,7 +166,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';  -- TEST sets flags only
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -176,7 +176,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '1';
                         pc_src    <= '0';
@@ -186,7 +186,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '1';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
@@ -196,7 +196,7 @@ begin
                         src_ALU   <= '1';                 -- second ALU operand is immediate
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
@@ -206,7 +206,7 @@ begin
                         src_ALU   <= '1';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_neg;            -- take branch only if negative flag set
@@ -216,7 +216,7 @@ begin
                         src_ALU   <= '1';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_zero;           -- take branch only if zero flag set
@@ -226,7 +226,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
@@ -236,7 +236,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_neg;
@@ -246,7 +246,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_zero;
@@ -256,7 +256,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '1';                 -- write return address (PC+2) to link register
-                        sel_WB    <= '1';                 -- select PC+2 as write-back value
+                        sel_WB    <= WB_PC2;              -- select PC+2 as write-back value
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
@@ -266,7 +266,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- load PC from link register
@@ -276,7 +276,7 @@ begin
                         src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
-                        sel_WB    <= '0';
+                        sel_WB    <= WB_ALU;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';

@@ -43,7 +43,7 @@ architecture Behavioral of Top_Level_CPU is
     signal src_ALU   : std_logic;
     signal wr_en_MEM : std_logic;
     signal wr_en_REG : std_logic;
-    signal sel_WB    : std_logic;
+    signal sel_WB    : std_logic_vector(1 downto 0);
     signal in_p_EN   : std_logic;
     signal out_p_EN  : std_logic;
     signal pc_src    : std_logic;
@@ -99,8 +99,10 @@ begin
     -- ALU source mux: '0' = register (rd_data2), '1' = immediate
     alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
 
-    -- Write-back mux: '0' = ALU result, '1' = memory data
-    wb_data <= MEM_WB_reg.mem_data when MEM_WB_reg.wb_src = '1' else MEM_WB_reg.alu_result;
+    -- Write-back mux: WB_ALU = ALU result, WB_MEM = memory data, WB_PC2 = return address
+    wb_data <= MEM_WB_reg.mem_data when MEM_WB_reg.wb_src = WB_MEM else
+               MEM_WB_reg.pc_plus2 when MEM_WB_reg.wb_src = WB_PC2 else
+               MEM_WB_reg.alu_result;
 
     -- Register file write (from MEM/WB stage)
     w_addr_rf <= MEM_WB_reg.dest_reg;
@@ -108,7 +110,7 @@ begin
     -- TODO: mux w_data_rf between wb_data and in_port when in_p_EN is active
     w_data_rf <= wb_data;
 
-    -- Register file read (decode from IF/ID instruction)
+    -- Register file read (decode from IF/ID instruction) 
     r_addr0_rf <= IF_ID_reg.instruction(8 downto 6); -- ra
     r_addr1_rf <= IF_ID_reg.instruction(2 downto 0); -- rb
     -- TODO: r_addr0_rf mux -> when OUT instruction, read ra instead of rd
@@ -116,8 +118,14 @@ begin
     -- PC mode: tell fetch whether to increment or jump to branch target
     pc_mode <= PC_IM_VALUE when pc_src = '1' else PC_INCREMENT;
 
-    -- TODO: branch_target mux -> BRR uses PC+imm, BR/RETURN use register value
-    branch_target <= pc_reset; -- placeholder
+    -- branch_target mux:
+    --   BRR/BRR_N/BRR_Z -> PC-relative: IF_ID pc_plus2 + sign-extended immediate
+    --   BR/BR_N/BR_Z/BR_SUB/RETURN -> register value: Ra (r_data0_rf, read in decode stage)
+    branch_target <= std_logic_vector(unsigned(IF_ID_reg.pc_plus2) + unsigned(imm_extended))
+                     when (IF_ID_reg.instruction(15 downto 9) = OP_BRR  or
+                           IF_ID_reg.instruction(15 downto 9) = OP_BRR_N or
+                           IF_ID_reg.instruction(15 downto 9) = OP_BRR_Z)
+                     else r_data0_rf;
 
     -- TODO: RAM enable/address/write logic (memory map decode)
     -- Suggested memory map:
@@ -165,7 +173,7 @@ begin
             ID_EX_reg.alu_src   <= '0';
             ID_EX_reg.wr_en_MEM <= '0';
             ID_EX_reg.reg_write <= '0';
-            ID_EX_reg.wb_src    <= '0';
+            ID_EX_reg.wb_src    <= WB_ALU;
         elsif rising_edge(clk) then
             ID_EX_reg.rd_data1  <= r_data0_rf;
             ID_EX_reg.rd_data2  <= r_data1_rf;
@@ -190,7 +198,7 @@ begin
             EX_MEM_reg.pc_plus2   <= (others => '0');
             EX_MEM_reg.wr_en_MEM  <= '0';
             EX_MEM_reg.reg_write  <= '0';
-            EX_MEM_reg.wb_src     <= '0';
+            EX_MEM_reg.wb_src     <= WB_ALU;
         elsif rising_edge(clk) then
             EX_MEM_reg.alu_result <= alu_result;
             EX_MEM_reg.rd_data2   <= ID_EX_reg.rd_data2;
@@ -211,7 +219,7 @@ begin
             MEM_WB_reg.dest_reg   <= (others => '0');
             MEM_WB_reg.pc_plus2   <= (others => '0');
             MEM_WB_reg.reg_write  <= '0';
-            MEM_WB_reg.wb_src     <= '0';
+            MEM_WB_reg.wb_src     <= WB_ALU;
         elsif rising_edge(clk) then
             MEM_WB_reg.alu_result <= EX_MEM_reg.alu_result;
             MEM_WB_reg.mem_data   <= ram_douta; -- TODO: mux with in_port for memory-mapped IN
