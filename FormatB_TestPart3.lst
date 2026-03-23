@@ -1,0 +1,27 @@
+
+;
+; Created on Mon Mar 23 12:16:17 2026 with ECE 449 assembler v1.12 beta 1 (16 bit).
+;
+;Header Section
+RADIX 10
+DEPTH 1024
+WIDTH 16
+DEFAULT 0
+;
+; Data Section
+; Specifies data to be stored in different addresses
+; e.g., DATA 0:A, 1:0
+;
+RADIX 16
+DATA 
+0528 => "0100001000000000", -- 0210 - 4200   IN            R0       
+0530 => "0100001001000000", -- 0212 - 4240   IN            R1       
+0532 => "0100001010000000", -- 0214 - 4280   IN            R2       
+0534 => "0100001011000000", -- 0216 - 42C0   IN            R3       
+0536 => "0000011110000011", -- 0218 - 0783   MUL           R6,R0,R3 
+0538 => "1000000000000000", -- 021A - 8000   BRR           0        
+
+
+-------------------------------------------------------
+Symbol Table:
+
