@@ -42,9 +42,9 @@ entity decode is
 
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
-        pc_reset      : out std_logic_vector(15 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
-        branch_taken  : out std_logic
+        branch_taken  : out std_logic;
+        pc_reset: out std_logic
     );
 end decode;
 
@@ -112,7 +112,7 @@ begin
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
                 pc_src    => pc_src_internal,
-                pc_reset  => pc_reset
+                pc_reset => 
             );
     branch_taken <= pc_src_internal;
     process(
@@ -134,6 +134,7 @@ begin
             pc_plus2_out  <= pc_plus2_in;
             branch_target <= source_1_data;
             pc_mode       <= PC_INCREMENT;
+            pc_reset       <= '0';
 
        if pc_src_internal = '1' then
             pc_mode <= PC_IM_VALUE;
