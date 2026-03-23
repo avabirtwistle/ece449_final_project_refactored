@@ -43,17 +43,17 @@ package pipeline_registers is
 
     end record;
     
-    type MEM_WB is record 
-    
-        alu_result : std_logic_vector(15 downto 0);
-        rd_data2   : std_logic_vector(15 downto 0;
-        dest_reg   : std_logic_vector(15 downto 0);
-        pc_plus2   : std_logic_vector(15 downto 0);
-        
-        reg_write  : std_logic; --Consumed at this stage; 
-        wb_src     : std_logic; --Consumed at this stage;
-        
-    end record; 
+    type MEM_WB is record
+
+        alu_result : std_logic_vector(15 downto 0); -- ALU result (used if wb_src = '0')
+        mem_data   : std_logic_vector(15 downto 0); -- data read from RAM (used if wb_src = '1')
+        dest_reg   : std_logic_vector(2  downto 0); -- destination register index
+        pc_plus2   : std_logic_vector(15 downto 0); -- PC+2 (for BR_SUB return address write-back)
+
+        reg_write  : std_logic; -- consumed at this stage: '1' = write to register file
+        wb_src     : std_logic; -- consumed at this stage: '0' = ALU result, '1' = mem data
+
+    end record;
 
 
 end package pipeline_registers;

@@ -26,13 +26,7 @@ architecture Behavioral of Top_Level_CPU is
                                   -- .alu_mode, .alu_src, .wr_en_MEM, .reg_write, .wb_src
     signal EX_MEM_reg : EX_MEM;  -- .alu_result, .rd_data2, .dest_reg, .pc_plus2,
                                   -- .wr_en_MEM, .reg_write, .wb_src
-    -- TODO: Add MEM_WB record type to pipeline_registers.vhd, then replace these flat signals:
-    signal memwb_alu_result : std_logic_vector(15 downto 0);
-    signal memwb_mem_data   : std_logic_vector(15 downto 0);
-    signal memwb_dest       : std_logic_vector(2  downto 0);
-    signal memwb_pc2        : std_logic_vector(15 downto 0);
-    signal memwb_wr_en_REG  : std_logic;
-    signal memwb_sel_WB     : std_logic;
+    signal MEM_WB_reg : MEM_WB;  -- .alu_result, .mem_data, .dest_reg, .pc_plus2, .reg_write, .wb_src
 
     ---------------------------------------------------------------
     -- FETCH STAGE SIGNALS
@@ -106,11 +100,11 @@ begin
     alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
 
     -- Write-back mux: '0' = ALU result, '1' = memory data
-    wb_data <= memwb_mem_data when memwb_sel_WB = '1' else memwb_alu_result;
+    wb_data <= MEM_WB_reg.mem_data when MEM_WB_reg.wb_src = '1' else MEM_WB_reg.alu_result;
 
     -- Register file write (from MEM/WB stage)
-    w_addr_rf <= memwb_dest;
-    wr_en_rf  <= memwb_wr_en_REG;
+    w_addr_rf <= MEM_WB_reg.dest_reg;
+    wr_en_rf  <= MEM_WB_reg.reg_write;
     -- TODO: mux w_data_rf between wb_data and in_port when in_p_EN is active
     w_data_rf <= wb_data;
 
@@ -209,23 +203,22 @@ begin
     end process;
 
     -- MEM/WB Register: latches memory stage output into write-back stage
-    -- TODO: add MEM_WB to pipeline_registers.vhd and replace flat signals above
     MEM_WB_proc : process(clk, rst)
     begin
         if rst = '1' then
-            memwb_alu_result <= (others => '0');
-            memwb_mem_data   <= (others => '0');
-            memwb_dest       <= (others => '0');
-            memwb_pc2        <= (others => '0');
-            memwb_wr_en_REG  <= '0';
-            memwb_sel_WB     <= '0';
+            MEM_WB_reg.alu_result <= (others => '0');
+            MEM_WB_reg.mem_data   <= (others => '0');
+            MEM_WB_reg.dest_reg   <= (others => '0');
+            MEM_WB_reg.pc_plus2   <= (others => '0');
+            MEM_WB_reg.reg_write  <= '0';
+            MEM_WB_reg.wb_src     <= '0';
         elsif rising_edge(clk) then
-            memwb_alu_result <= EX_MEM_reg.alu_result;
-            memwb_mem_data   <= ram_douta; -- TODO: mux with in_port for memory-mapped IN
-            memwb_dest       <= EX_MEM_reg.dest_reg;
-            memwb_pc2        <= EX_MEM_reg.pc_plus2;
-            memwb_wr_en_REG  <= EX_MEM_reg.reg_write;
-            memwb_sel_WB     <= EX_MEM_reg.wb_src;
+            MEM_WB_reg.alu_result <= EX_MEM_reg.alu_result;
+            MEM_WB_reg.mem_data   <= ram_douta; -- TODO: mux with in_port for memory-mapped IN
+            MEM_WB_reg.dest_reg   <= EX_MEM_reg.dest_reg;
+            MEM_WB_reg.pc_plus2   <= EX_MEM_reg.pc_plus2;
+            MEM_WB_reg.reg_write  <= EX_MEM_reg.reg_write;
+            MEM_WB_reg.wb_src     <= EX_MEM_reg.wb_src;
         end if;
     end process;
 
