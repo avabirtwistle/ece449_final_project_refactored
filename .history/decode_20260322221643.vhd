@@ -11,8 +11,8 @@ entity decode is
         reset         : in  std_logic;
 
         -- from IF/ID
-        instruction    : in  std_logic_vector(15 downto 0);
-        pc   : in  std_logic_vector(15 downto 0);
+        in_instr      : in  std_logic_vector(15 downto 0);
+        in_pc_plus2   : in  std_logic_vector(15 downto 0);
 
         -- from WB stage back into reg file
         wb_wr_en      : in  std_logic;
@@ -62,6 +62,25 @@ begin
 
     imm_ext <= std_logic_vector(resize(signed(in_instr(5 downto 0)), 16));
 
+    u_ctrl : entity work.controller
+        port map(
+            clk       => clk,
+            reset     => reset,
+            opcode    => opcode,
+            flag_zero => flag_zero,
+            flag_neg  => flag_neg,
+            boot_mode => boot_mode,
+            mode_ALU  => out_alu_mode,
+            src_ALU   => out_alu_src,
+            wr_en_MEM => out_wr_en_MEM,
+            wr_en_REG => out_wr_en_REG,
+            sel_WB    => out_sel_WB,
+            in_p_EN   => out_in_p_EN,
+            out_p_EN  => out_out_p_EN,
+            pc_src    => out_pc_src,
+            pc_reset  => out_pc_reset
+        );
+
     u_regfile : entity work.register_file
         port map(
             clk     => clk,
@@ -79,5 +98,5 @@ begin
     out_rd_data2 <= r_data1_rf;
     out_imm      <= imm_ext;
     out_dest_reg <= ra;
-    out_pc_plus2 <= pc;
+    out_pc_plus2 <= in_pc_plus2;
 end Behavioral;

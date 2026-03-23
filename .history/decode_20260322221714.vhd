@@ -11,8 +11,8 @@ entity decode is
         reset         : in  std_logic;
 
         -- from IF/ID
-        instruction    : in  std_logic_vector(15 downto 0);
-        pc   : in  std_logic_vector(15 downto 0);
+        in_instr      : in  std_logic_vector(15 downto 0);
+        in_pc_plus2   : in  std_logic_vector(15 downto 0);
 
         -- from WB stage back into reg file
         wb_wr_en      : in  std_logic;
