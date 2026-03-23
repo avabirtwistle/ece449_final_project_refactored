@@ -81,9 +81,6 @@ architecture Behavioral of Top_Level_CPU is
     -- WRITE BACK SIGNALS
     ---------------------------------------------------------------
     signal wb_data      : std_logic_vector(15 downto 0);
-    signal w_addr_rf  : std_logic_vector(2 downto 0);
-    signal w_data_rf  : std_logic_vector(15 downto 0);
-    signal wr_en_rf   : std_logic;
 
 begin
 

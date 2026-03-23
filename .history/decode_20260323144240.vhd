@@ -114,7 +114,7 @@ begin
                 pc_src    => pc_src_internal,
                 pc_reset  => pc_reset
             );
-    branch_taken <= pc_src_internal;
+
     process(
             opcode_internal,
             destination_reg_internal,
@@ -140,6 +140,9 @@ begin
         end if;
 
         case opcode_internal is
+            when OP_ADD | OP_SUB | OP_MUL | OP_NAND | OP_TEST | OP_OUT | OP_IN =>
+                null;
+
             when OP_SHL | OP_SHR =>
                 imm <= std_logic_vector(resize(unsigned(shift_amount_internal), 16));
 

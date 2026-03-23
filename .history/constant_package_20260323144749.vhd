@@ -66,4 +66,4 @@ package constant_package is
     constant LINK_REGISTER      : std_logic_vector(2 downto 0) := "111"; -- 7, return from interrupt (jump to address in r7 and restore r7 with value at top of stack, increment stack pointer)
 
 
-end package constant_package;
+end package constants_package;

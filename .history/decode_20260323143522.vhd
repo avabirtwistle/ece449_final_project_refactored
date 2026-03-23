@@ -43,8 +43,7 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         pc_reset      : out std_logic_vector(15 downto 0);
-        branch_target : out std_logic_vector(15 downto 0);
-        branch_taken  : out std_logic
+        branch_target : out std_logic_vector(15 downto 0)
     );
 end decode;
 
@@ -114,7 +113,7 @@ begin
                 pc_src    => pc_src_internal,
                 pc_reset  => pc_reset
             );
-    branch_taken <= pc_src_internal;
+
     process(
             opcode_internal,
             destination_reg_internal,
@@ -135,36 +134,32 @@ begin
             branch_target <= source_1_data;
             pc_mode       <= PC_INCREMENT;
 
-       if pc_src_internal = '1' then
-            pc_mode <= PC_IM_VALUE;
-        end if;
+        case opcode_i is
+            when OP_NOP =>
+                null;
 
-        case opcode_internal is
+            when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>
+                alu_src <= '0';
+
             when OP_SHL | OP_SHR =>
-                imm <= std_logic_vector(resize(unsigned(shift_amount_internal), 16));
+                alu_src <= '1';
+                imm <= std_logic_vector(resize(unsigned(shift_amount_i), 16));
+
+            when OP_TEST | OP_OUT | OP_IN =>
+                null;
 
             when OP_BRR | OP_BRR_N | OP_BRR_Z =>
-                imm <= std_logic_vector(resize(signed(disp_long_internal), 16));
-                branch_target <= std_logic_vector(
-                    unsigned(pc_plus2_in) +
-                    unsigned(std_logic_vector(resize(signed(disp_long_internal), 16)))
-                );
+                imm <= std_logic_vector(resize(signed(disp_long_i), 16));
 
-            when OP_BR | OP_BR_N | OP_BR_Z =>
-                imm <= std_logic_vector(resize(signed(disp_short_internal), 16));
-                branch_target <= source_1_data;
-
-            when OP_BR_SUB =>
-                imm <= std_logic_vector(resize(signed(disp_short_internal), 16));
-                dest_reg <= LINK_REGISTER;
-                branch_target <= source_1_data;
+            when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
+                imm <= std_logic_vector(resize(signed(disp_short_i), 16));
 
             when OP_RETURN =>
-                branch_target <= source_1_data;
+                null;
 
             when others =>
                 null;
         end case;
     end process;
 
-end Behavioral;
+    end Behavioral;

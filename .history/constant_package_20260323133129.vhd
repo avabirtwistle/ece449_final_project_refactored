@@ -2,22 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package constant_package is 
+package constants_package is 
 
     -- ALU operation modes
-    constant ALU_NOP  : std_logic_vector(2 downto 0) := "000";
-    constant ALU_ADD  : std_logic_vector(2 downto 0) := "001";
-    constant ALU_SUB  : std_logic_vector(2 downto 0) := "010";
-    constant ALU_MUL  : std_logic_vector(2 downto 0) := "011";
-    constant ALU_NAND : std_logic_vector(2 downto 0) := "100";
-    constant ALU_SHL  : std_logic_vector(2 downto 0) := "101";
-    constant ALU_SHR  : std_logic_vector(2 downto 0) := "110";
-    constant ALU_TEST : std_logic_vector(2 downto 0) := "111";
-
-    constant WB_ALU : std_logic_vector(1 downto 0) := "00";
-    constant WB_MEM : std_logic_vector(1 downto 0) := "01";
-    constant WB_PC2 : std_logic_vector(1 downto 0) := "10";
-
+    constant ALU_ADD : std_logic_vector(2 downto 0) := "000";
+    constant ALU_SUB : std_logic_vector(2 downto 0) := "001";
     -- TODO: add more ALU operation modes as needed
 
     -- TODO: add control signal constants
@@ -66,4 +55,4 @@ package constant_package is
     constant LINK_REGISTER      : std_logic_vector(2 downto 0) := "111"; -- 7, return from interrupt (jump to address in r7 and restore r7 with value at top of stack, increment stack pointer)
 
 
-end package constant_package;
+end package constants_package;

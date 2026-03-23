@@ -36,25 +36,29 @@ architecture Behavioral of Top_Level_CPU is
     signal pc_mode       : std_logic_vector(1 downto 0);  -- drives fetch mode port
     signal branch_target : std_logic_vector(15 downto 0); -- address to load on branch
 
-      ---------------------------------------------------------------
-    -- DECODE STAGE SIGNALS
     ---------------------------------------------------------------
-    signal decode_rd_data1  : std_logic_vector(15 downto 0);
-    signal decode_rd_data2  : std_logic_vector(15 downto 0);
-    signal decode_imm       : std_logic_vector(15 downto 0);
-    signal decode_dest_reg  : std_logic_vector(2 downto 0);
-    signal decode_pc_plus2  : std_logic_vector(15 downto 0);
+    -- CONTROLLER SIGNALS
+    ---------------------------------------------------------------
+    signal mode_ALU  : std_logic_vector(2 downto 0);
+    signal src_ALU   : std_logic;
+    signal wr_en_MEM : std_logic;
+    signal wr_en_REG : std_logic;
+    signal sel_WB    : std_logic_vector(1 downto 0);
+    signal in_p_EN   : std_logic;
+    signal out_p_EN  : std_logic;
+    signal pc_src    : std_logic;
+    signal pc_reset  : std_logic_vector(15 downto 0);
 
-    signal decode_alu_mode  : std_logic_vector(2 downto 0);
-    signal decode_alu_src   : std_logic;
-    signal decode_wr_en_MEM : std_logic;
-    signal decode_wr_en_REG : std_logic;
-    signal decode_sel_WB    : std_logic_vector(1 downto 0);
-    signal decode_in_p_EN   : std_logic;
-    signal decode_out_p_EN  : std_logic;
-
-    signal branch_taken     : std_logic;
-
+    ---------------------------------------------------------------
+    -- REGISTER FILE SIGNALS
+    ---------------------------------------------------------------
+    signal r_addr0_rf : std_logic_vector(2  downto 0);
+    signal r_addr1_rf : std_logic_vector(2  downto 0);
+    signal r_data0_rf : std_logic_vector(15 downto 0);
+    signal r_data1_rf : std_logic_vector(15 downto 0);
+    signal w_addr_rf  : std_logic_vector(2  downto 0);
+    signal w_data_rf  : std_logic_vector(15 downto 0);
+    signal wr_en_rf   : std_logic;
 
     ---------------------------------------------------------------
     -- ALU SIGNALS
@@ -81,11 +85,16 @@ architecture Behavioral of Top_Level_CPU is
     -- WRITE BACK SIGNALS
     ---------------------------------------------------------------
     signal wb_data      : std_logic_vector(15 downto 0);
-    signal w_addr_rf  : std_logic_vector(2 downto 0);
-    signal w_data_rf  : std_logic_vector(15 downto 0);
-    signal wr_en_rf   : std_logic;
+    signal imm_extended : std_logic_vector(15 downto 0);
 
 begin
+
+    ---------------------------------------------------------------
+    -- COMBINATIONAL LOGIC
+    ---------------------------------------------------------------
+
+    -- Sign-extend immediate from IF/ID instruction bits [5:0]
+    imm_extended <= std_logic_vector(resize(signed(IF_ID_reg.instruction(5 downto 0)), 16));
 
     -- ALU source mux: '0' = register (rd_data2), '1' = immediate
     alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
@@ -101,6 +110,26 @@ begin
     -- IN instruction mux: if in_p_EN reached WB stage, write in_port directly to reg file
     w_data_rf <= in_port when MEM_WB_reg.in_p_EN = '1' else wb_data;
 
+    -- Register file read (decode from IF/ID instruction)
+    -- r_addr0_rf mux:
+    --   RETURN  -> R7 (link register holds return address)
+    --   default -> Ra from instruction bits [8:6]
+    r_addr0_rf <= LINK_REG when IF_ID_reg.instruction(15 downto 9) = OP_RETURN
+                  else IF_ID_reg.instruction(8 downto 6);
+    r_addr1_rf <= IF_ID_reg.instruction(2 downto 0); -- rb
+    -- TODO: also mux for OUT instruction (reads ra, not rd)
+
+    -- PC mode: tell fetch whether to increment or jump to branch target
+    pc_mode <= PC_IM_VALUE when pc_src = '1' else PC_INCREMENT;
+
+    -- branch_target mux:
+    --   BRR/BRR_N/BRR_Z -> PC-relative: IF_ID pc_plus2 + sign-extended immediate
+    --   BR/BR_N/BR_Z/BR_SUB/RETURN -> register value: Ra (r_data0_rf, read in decode stage)
+    branch_target <= std_logic_vector(unsigned(IF_ID_reg.pc_plus2) + unsigned(imm_extended))
+                     when (IF_ID_reg.instruction(15 downto 9) = OP_BRR  or
+                           IF_ID_reg.instruction(15 downto 9) = OP_BRR_N or
+                           IF_ID_reg.instruction(15 downto 9) = OP_BRR_Z)
+                     else r_data0_rf;
 
     -- TODO: RAM enable/address/write logic (memory map decode)
     -- Suggested memory map:
@@ -129,8 +158,7 @@ begin
             IF_ID_reg.instruction <= (others => '0');
             IF_ID_reg.pc_plus2    <= (others => '0');
         elsif rising_edge(clk) then
-            if branch_taken = '1' then
-
+            if pc_src = '1' then
                 -- branch taken: flush the incorrectly-fetched instruction with a NOP
                 IF_ID_reg.instruction <= (others => '0');
                 IF_ID_reg.pc_plus2    <= (others => '0');
@@ -157,18 +185,19 @@ begin
             ID_EX_reg.wb_src    <= WB_ALU;
             ID_EX_reg.in_p_EN   <= '0';
         elsif rising_edge(clk) then
-            ID_EX_reg.rd_data1  <= decode_rd_data1;
-            ID_EX_reg.rd_data2  <= decode_rd_data2;
-            ID_EX_reg.imm       <= decode_imm;
-            ID_EX_reg.dest_reg  <= decode_dest_reg;
-            ID_EX_reg.pc_plus2  <= decode_pc_plus2;
-            ID_EX_reg.alu_mode  <= decode_alu_mode;
-            ID_EX_reg.alu_src   <= decode_alu_src;
-            ID_EX_reg.wr_en_MEM <= decode_wr_en_MEM;
-            ID_EX_reg.reg_write <= decode_wr_en_REG;
-            ID_EX_reg.wb_src    <= decode_sel_WB;
-            ID_EX_reg.in_p_EN   <= decode_in_p_EN;
-
+            ID_EX_reg.rd_data1  <= r_data0_rf;
+            ID_EX_reg.rd_data2  <= r_data1_rf;
+            ID_EX_reg.imm       <= imm_extended;
+            -- BR_SUB writes return address to R7 (link register), not Ra
+            ID_EX_reg.dest_reg  <= LINK_REG when IF_ID_reg.instruction(15 downto 9) = OP_BR_SUB
+                                    else IF_ID_reg.instruction(8 downto 6);
+            ID_EX_reg.pc_plus2  <= IF_ID_reg.pc_plus2;
+            ID_EX_reg.alu_mode  <= mode_ALU;
+            ID_EX_reg.alu_src   <= src_ALU;
+            ID_EX_reg.wr_en_MEM <= wr_en_MEM;
+            ID_EX_reg.reg_write <= wr_en_REG;
+            ID_EX_reg.wb_src    <= sel_WB;
+            ID_EX_reg.in_p_EN   <= in_p_EN;
         end if;
     end process;
 
@@ -234,34 +263,38 @@ begin
             instruction => fetch_instr
         );
 
-    u_decode : entity work.decode
-        port map(
-            clk           => clk,
-            reset         => rst,
-            instruction   => IF_ID_reg.instruction,
-            pc_plus2_in   => IF_ID_reg.pc_plus2,
-            wb_wr_en      => wr_en_rf,
-            wb_dest       => w_addr_rf,
-            wb_data       => w_data_rf,
-            flag_zero     => flag_zero,
-            flag_neg      => flag_neg,
-            boot_mode     => boot_mode,
-            rd_data1      => decode_rd_data1,
-            rd_data2      => decode_rd_data2,
-            imm           => decode_imm,
-            dest_reg      => decode_dest_reg,
-            pc_plus2_out  => decode_pc_plus2,
-            alu_mode      => decode_alu_mode,
-            alu_src       => decode_alu_src,
-            wr_en_MEM     => decode_wr_en_MEM,
-            wr_en_REG     => decode_wr_en_REG,
-            sel_WB        => decode_sel_WB,
-            in_p_EN       => decode_in_p_EN,
-            out_p_EN      => decode_out_p_EN,
-            pc_mode       => pc_mode,
-            pc_reset      => pc_reset,
-            branch_target => branch_target,
-            branch_taken  => branch_taken
+    -- CONTROLLER
+    u_ctrl : entity work.controller
+        port map (
+            clk       => clk,
+            reset     => rst,
+            opcode    => IF_ID_reg.instruction(15 downto 9),
+            flag_zero => flag_zero,
+            flag_neg  => flag_neg,
+            boot_mode => boot_mode,
+            mode_ALU  => mode_ALU,
+            src_ALU   => src_ALU,
+            wr_en_MEM => wr_en_MEM,
+            wr_en_REG => wr_en_REG,
+            sel_WB    => sel_WB,
+            in_p_EN   => in_p_EN,
+            out_p_EN  => out_p_EN,
+            pc_src    => pc_src,
+            pc_reset  => pc_reset
+        );
+
+    -- REGISTER FILE
+    u_register_file : entity work.register_file
+        port map (
+            clk     => clk,
+            reset   => rst,
+            wr_en   => wr_en_rf,
+            w_addr  => w_addr_rf,
+            w_data  => w_data_rf,
+            r_addr0 => r_addr0_rf,
+            r_addr1 => r_addr1_rf,
+            r_data0 => r_data0_rf,
+            r_data1 => r_data1_rf
         );
 
     -- ALU

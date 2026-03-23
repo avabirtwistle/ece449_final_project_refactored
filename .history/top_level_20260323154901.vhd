@@ -56,6 +56,22 @@ architecture Behavioral of Top_Level_CPU is
     signal branch_taken     : std_logic;
 
 
+    signal mode_ALU  : std_logic_vector(2 downto 0);
+    signal src_ALU   : std_logic;
+    signal wr_en_MEM : std_logic;
+    signal wr_en_REG : std_logic;
+    signal sel_WB    : std_logic_vector(1 downto 0);
+    signal in_p_EN   : std_logic;
+    signal out_p_EN  : std_logic;
+    signal pc_src    : std_logic;
+
+    signal r_addr0_rf : std_logic_vector(2 downto 0);
+    signal r_addr1_rf : std_logic_vector(2 downto 0);
+    signal r_data0_rf : std_logic_vector(15 downto 0);
+    signal r_data1_rf : std_logic_vector(15 downto 0);
+
+    signal imm_extended : std_logic_vector(15 downto 0);
+
     ---------------------------------------------------------------
     -- ALU SIGNALS
     ---------------------------------------------------------------
@@ -81,9 +97,7 @@ architecture Behavioral of Top_Level_CPU is
     -- WRITE BACK SIGNALS
     ---------------------------------------------------------------
     signal wb_data      : std_logic_vector(15 downto 0);
-    signal w_addr_rf  : std_logic_vector(2 downto 0);
-    signal w_data_rf  : std_logic_vector(15 downto 0);
-    signal wr_en_rf   : std_logic;
+    signal imm_extended : std_logic_vector(15 downto 0);
 
 begin
 
@@ -129,8 +143,7 @@ begin
             IF_ID_reg.instruction <= (others => '0');
             IF_ID_reg.pc_plus2    <= (others => '0');
         elsif rising_edge(clk) then
-            if branch_taken = '1' then
-
+            if pc_src = '1' then
                 -- branch taken: flush the incorrectly-fetched instruction with a NOP
                 IF_ID_reg.instruction <= (others => '0');
                 IF_ID_reg.pc_plus2    <= (others => '0');
@@ -157,18 +170,19 @@ begin
             ID_EX_reg.wb_src    <= WB_ALU;
             ID_EX_reg.in_p_EN   <= '0';
         elsif rising_edge(clk) then
-            ID_EX_reg.rd_data1  <= decode_rd_data1;
-            ID_EX_reg.rd_data2  <= decode_rd_data2;
-            ID_EX_reg.imm       <= decode_imm;
-            ID_EX_reg.dest_reg  <= decode_dest_reg;
-            ID_EX_reg.pc_plus2  <= decode_pc_plus2;
-            ID_EX_reg.alu_mode  <= decode_alu_mode;
-            ID_EX_reg.alu_src   <= decode_alu_src;
-            ID_EX_reg.wr_en_MEM <= decode_wr_en_MEM;
-            ID_EX_reg.reg_write <= decode_wr_en_REG;
-            ID_EX_reg.wb_src    <= decode_sel_WB;
-            ID_EX_reg.in_p_EN   <= decode_in_p_EN;
-
+            ID_EX_reg.rd_data1  <= r_data0_rf;
+            ID_EX_reg.rd_data2  <= r_data1_rf;
+            ID_EX_reg.imm       <= imm_extended;
+            -- BR_SUB writes return address to R7 (link register), not Ra
+            ID_EX_reg.dest_reg  <= LINK_REGISTER when IF_ID_reg.instruction(15 downto 9) = OP_BR_SUB
+                                    else IF_ID_reg.instruction(8 downto 6);
+            ID_EX_reg.pc_plus2  <= IF_ID_reg.pc_plus2;
+            ID_EX_reg.alu_mode  <= mode_ALU;
+            ID_EX_reg.alu_src   <= src_ALU;
+            ID_EX_reg.wr_en_MEM <= wr_en_MEM;
+            ID_EX_reg.reg_write <= wr_en_REG;
+            ID_EX_reg.wb_src    <= sel_WB;
+            ID_EX_reg.in_p_EN   <= in_p_EN;
         end if;
     end process;
 
