@@ -154,9 +154,14 @@ begin
             IF_ID_reg.instruction <= (others => '0');
             IF_ID_reg.pc_plus2    <= (others => '0');
         elsif rising_edge(clk) then
-            IF_ID_reg.instruction <= fetch_instr;
-            IF_ID_reg.pc_plus2    <= fetch_pc;
-            -- TODO: add stall/flush logic here for branches
+            if pc_src = '1' then
+                -- branch taken: flush the incorrectly-fetched instruction with a NOP
+                IF_ID_reg.instruction <= (others => '0');
+                IF_ID_reg.pc_plus2    <= (others => '0');
+            else
+                IF_ID_reg.instruction <= fetch_instr;
+                IF_ID_reg.pc_plus2    <= fetch_pc;
+            end if;
         end if;
     end process;
 

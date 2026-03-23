@@ -192,8 +192,8 @@ begin
                         pc_src    <= '0';
                         
                     when OP_BRR =>                        -- Branch relative, unconditional: PC = PC + imm
-                        mode_ALU  <= ALU_ADD;             -- ALU computes PC + displacement
-                        src_ALU   <= '1';                 -- second ALU operand is immediate
+                        mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                        src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
                         sel_WB    <= WB_ALU;
@@ -202,8 +202,8 @@ begin
                         pc_src    <= '1';                 -- always take branch
 
                     when OP_BRR_N =>                      -- Branch relative if negative: PC = PC + imm if flag_neg
-                        mode_ALU  <= ALU_ADD;
-                        src_ALU   <= '1';
+                        mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                        src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
                         sel_WB    <= WB_ALU;
@@ -212,8 +212,8 @@ begin
                         pc_src    <= flag_neg;            -- take branch only if negative flag set
 
                     when OP_BRR_Z =>                      -- Branch relative if zero: PC = PC + imm if flag_zero
-                        mode_ALU  <= ALU_ADD;
-                        src_ALU   <= '1';
+                        mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                        src_ALU   <= '0';
                         wr_en_MEM <= '0';
                         wr_en_REG <= '0';
                         sel_WB    <= WB_ALU;
