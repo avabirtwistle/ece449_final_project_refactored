@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 library work;
-use work.constant_package.all; 
+use work.constants_package.all; 
 
 entity controller is
     port(
@@ -191,85 +191,85 @@ begin
                         out_p_EN  <= '0';
                         pc_src    <= '0';
                         
-                    when OP_BRR => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                      
-                      when OP_BRR_N => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                     
-                       when OP_BRR_Z => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                     
-                       when OP_BR => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                    
-                      when OP_BR_N => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                   
-                     when OP_BR_Z => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                     
-                       when OP_BR_SUB =>                  
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
-                       
-                    when OP_RETURN => 
-                        mode_ALU  <= 
-                        src_ALU   <= 
-                        wr_en_MEM <=
-                        wr_en_REG <= 
-                        sel_WB    <= 
-                        in_p_EN   <= 
-                        out_p_EN  <= 
-                        pc_src    <= 
+                    when OP_BRR =>                        -- Branch relative, unconditional: PC = PC + imm
+                        mode_ALU  <= ALU_ADD;             -- ALU computes PC + displacement
+                        src_ALU   <= '1';                 -- second ALU operand is immediate
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '1';                 -- always take branch
+
+                    when OP_BRR_N =>                      -- Branch relative if negative: PC = PC + imm if flag_neg
+                        mode_ALU  <= ALU_ADD;
+                        src_ALU   <= '1';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= flag_neg;            -- take branch only if negative flag set
+
+                    when OP_BRR_Z =>                      -- Branch relative if zero: PC = PC + imm if flag_zero
+                        mode_ALU  <= ALU_ADD;
+                        src_ALU   <= '1';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= flag_zero;           -- take branch only if zero flag set
+
+                    when OP_BR =>                         -- Branch to register, unconditional: PC = Ra
+                        mode_ALU  <= ALU_NOP;             -- no ALU computation; target is register value
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '1';                 -- always take branch
+
+                    when OP_BR_N =>                       -- Branch to register if negative: PC = Ra if flag_neg
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= flag_neg;
+
+                    when OP_BR_Z =>                       -- Branch to register if zero: PC = Ra if flag_zero
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= flag_zero;
+
+                    when OP_BR_SUB =>                     -- Branch to subroutine: PC = Ra, save PC+2 to link reg
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '1';                 -- write return address (PC+2) to link register
+                        sel_WB    <= '1';                 -- select PC+2 as write-back value
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '1';                 -- always take branch
+
+                    when OP_RETURN =>                     -- Return from subroutine: PC = Ra (we need r7?) (link register) 
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= '0';
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '1';                 -- load PC from link register
                         
                     when others =>
                         mode_ALU  <= ALU_NOP;
