@@ -16,7 +16,7 @@ entity decoder is
         source_2 : out std_logic_vector(2 downto 0); -- the index of the register to read for operand 2 (for R-type instructions)
         shift_amount : out std_logic_vector(3 downto 0); -- the amount to shift for shift instructions
         disp_long   : out std_logic_vector(8 downto 0); -- the
-        disp_short  : out std_logic_vector(5 downto 0); -- the short displacement for branch instructions
+        disp_short  : out std_logic_vector(5 downto 0) -- the short displacement for branch instructions
         );
 end decoder;
 
@@ -57,6 +57,8 @@ begin
                     disp_short <= instruction(5 downto 0);
                 when OP_RETURN => -- format b3
                     source_1 <= LINK_REGISTER; -- register 7
+                when others=>
+                    null;
             end case;
     end process;
     opcode <= instruction(15 downto 9);
