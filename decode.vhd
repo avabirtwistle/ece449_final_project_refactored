@@ -30,6 +30,7 @@ entity decode is
         imm           : out std_logic_vector(15 downto 0);
         dest_reg      : out std_logic_vector(2 downto 0);
         pc_plus2_out  : out std_logic_vector(15 downto 0);
+        shift_amt : out std_logic_vector(3 downto 0); 
 
         -- control outputs toward ID/EX
         alu_mode      : out std_logic_vector(2 downto 0);
@@ -112,7 +113,7 @@ begin
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
                 pc_src    => pc_src_internal,
-                pc_reset => 
+                pc_reset => pc_reset
             );
     branch_taken <= pc_src_internal;
     process(
@@ -137,29 +138,29 @@ begin
             pc_reset       <= '0';
 
        if pc_src_internal = '1' then
-            pc_mode <= PC_IM_VALUE;
+            pc_mode <= PC_LOAD_LINK;
         end if;
 
         case opcode_internal is
             when OP_SHL | OP_SHR =>
-                imm <= std_logic_vector(resize(unsigned(shift_amount_internal), 16));
+                shift_amt <= shift_amount_internal;
 
             when OP_BRR | OP_BRR_N | OP_BRR_Z =>
-                imm <= std_logic_vector(resize(signed(disp_long_internal), 16));
                 branch_target <= std_logic_vector(
-                    unsigned(pc_plus2_in) +
-                    unsigned(std_logic_vector(resize(signed(disp_long_internal), 16)))
+                    signed(pc_plus2_in) + shift_left(resize(signed(disp_long_internal), 16), 1)
                 );
 
             when OP_BR | OP_BR_N | OP_BR_Z =>
-                imm <= std_logic_vector(resize(signed(disp_short_internal), 16));
-                branch_target <= source_1_data;
+                branch_target <= std_logic_vector(
+                    signed(source_1_data) + shift_left(resize(signed(disp_short_internal), 16), 1)
+                    );
 
             when OP_BR_SUB =>
-                imm <= std_logic_vector(resize(signed(disp_short_internal), 16));
                 dest_reg <= LINK_REGISTER;
-                branch_target <= source_1_data;
-
+                branch_target <= std_logic_vector(
+                    signed(source_1_data) + shift_left(resize(signed(disp_short_internal), 16), 1)
+                    );
+                    
             when OP_RETURN =>
                 branch_target <= source_1_data;
 
