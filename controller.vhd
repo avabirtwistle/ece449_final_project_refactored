@@ -39,7 +39,7 @@ entity controller is
         -- Branch / PC Control
         pc_src      : out std_logic;
         pc_mode       : out std_logic_vector(1 downto 0);
-        pc_reset : out std_logic;
+        pc_reset : out std_logic
     );
 end controller;
 
@@ -75,9 +75,9 @@ begin
         sel_WB    <= WB_ALU;
         in_p_EN   <= '0';
         out_p_EN  <= '0';
-        pc_src    <= '0';
-        pc_mode <= PC_INCREMENT;
-        pc_reset <= '0';
+        pc_src    <= '0'; -- denotes if we will take a branch or not
+        pc_mode <= PC_INCREMENT; -- the signal for selecting the program counter mode in the fetch module
+        pc_reset <= '0'; -- for reseting the program counter in the fetch module
         case current_state is
 
             -- RESET
@@ -101,6 +101,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
+                        pc_mode <= PC_INCREMENT;
 
                     when OP_ADD =>
                         mode_ALU  <= ALU_ADD;
@@ -111,7 +112,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_SUB =>
                         mode_ALU  <= ALU_SUB;
                         src_ALU   <= '0';
@@ -121,7 +123,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_MUL =>
                         mode_ALU  <= ALU_MUL;
                         src_ALU   <= '0';
@@ -131,7 +134,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_NAND =>
                         mode_ALU  <= ALU_NAND;
                         src_ALU   <= '0';
@@ -141,7 +145,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_SHL =>
                         mode_ALU  <= ALU_SHL;
                         src_ALU   <= '1';
@@ -151,7 +156,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_SHR =>
                         mode_ALU  <= ALU_SHR;
                         src_ALU   <= '1';
@@ -161,7 +167,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_TEST =>
                         mode_ALU  <= ALU_TEST;
                         src_ALU   <= '0';
@@ -171,7 +178,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_OUT =>
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -181,7 +189,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '1';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
+                        
                     when OP_IN =>
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -191,6 +200,7 @@ begin
                         in_p_EN   <= '1';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
+                        pc_mode <= PC_INCREMENT;
                         
                     when OP_BRR =>                        -- Branch relative, unconditional: PC = PC + imm
                         mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
@@ -201,7 +211,8 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
-
+                        pc_mode <= PC_LOAD_LINK;
+                        
                     when OP_BRR_N =>                      -- Branch relative if negative: PC = PC + imm if flag_neg
                         mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
                         src_ALU   <= '0';
@@ -211,7 +222,12 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_neg;            -- take branch only if negative flag set
-
+                        if flag_neg = '1' then 
+                            pc_mode <= PC_LOAD_LINK;
+                        else
+                            pc_mode <= PC_INCREMENT;
+                        end if;
+                        
                     when OP_BRR_Z =>                      -- Branch relative if zero: PC = PC + imm if flag_zero
                         mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
                         src_ALU   <= '0';
@@ -221,6 +237,11 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_zero;           -- take branch only if zero flag set
+                        if flag_zero = '1' then 
+                            pc_mode <= PC_LOAD_LINK;
+                        else
+                            pc_mode <= PC_INCREMENT;
+                        end if;
 
                     when OP_BR =>                         -- Branch to register, unconditional: PC = Ra
                         mode_ALU  <= ALU_NOP;             -- no ALU computation; target is register value
@@ -231,7 +252,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
-
+                        pc_mode <= PC_LOAD_LINK;
                     when OP_BR_N =>                       -- Branch to register if negative: PC = Ra if flag_neg
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -241,7 +262,12 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_neg;
-
+                        if flag_neg = '1' then 
+                            pc_mode <= PC_LOAD_LINK;
+                        else
+                            pc_mode <= PC_INCREMENT;
+                        end if;
+                        
                     when OP_BR_Z =>                       -- Branch to register if zero: PC = Ra if flag_zero
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -251,7 +277,12 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= flag_zero;
-
+                        if flag_zero = '1' then 
+                            pc_mode <= PC_LOAD_LINK;
+                        else
+                            pc_mode <= PC_INCREMENT;
+                        end if;
+                        
                     when OP_BR_SUB =>                     -- Branch to subroutine: PC = Ra, save PC+2 to link reg
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -261,6 +292,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
+                        pc_mode <= PC_LOAD_LINK;
 
                     when OP_RETURN =>                     -- Return from subroutine: PC = Ra (we need r7?) (link register) 
                         mode_ALU  <= ALU_NOP;
@@ -271,7 +303,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- load PC from link register
-                        
+                        pc_mode <= PC_LOAD_LINK;
                     when others =>
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
@@ -281,7 +313,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '0';
-
+                        pc_mode <= PC_INCREMENT;
                 end case;
 
             when others =>
