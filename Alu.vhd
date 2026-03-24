@@ -24,6 +24,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity Alu is
     port(
+        shift_amount: in  std_logic_vector(3 downto 0);
         a           : in  std_logic_vector(15 downto 0); -- first operand for ALU operations
         b           : in  std_logic_vector(15 downto 0); -- second operand for ALU operations
         result      : out std_logic_vector(15 downto 0); -- output of the ALU operation
