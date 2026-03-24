@@ -14,7 +14,7 @@ entity decoder is
         destination_reg : out std_logic_vector(2 downto 0); -- the index of the register to write for R-type instructions
         source_1 : out std_logic_vector(2 downto 0); -- the index of the register to read for operand 1 (for R-type instructions) or the register to read for branch comparison (for branch instructions)
         source_2 : out std_logic_vector(2 downto 0); -- the index of the register to read for operand 2 (for R-type instructions)
-        shift_amount : out std_logic_vector(3 downto 0); -- the amount to shift for shift instructions
+        shift_amt : out std_logic_vector(3 downto 0); -- the amount to shift for shift instructions
         disp_long   : out std_logic_vector(8 downto 0); -- the
         disp_short  : out std_logic_vector(5 downto 0) -- the short displacement for branch instructions
         );
@@ -28,7 +28,7 @@ begin
             destination_reg <= (others => '0');
             source_1        <= (others => '0');
             source_2        <= (others => '0');
-            shift_amount    <= (others => '0');
+            shift_amt    <= (others => '0');
             disp_long       <= (others => '0');
             disp_short      <= (others => '0');
             case instruction(15 downto 9) is 
