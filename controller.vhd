@@ -252,7 +252,7 @@ begin
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
                         pc_src    <= '1';                 -- always take branch
-                        pc_mode <= PC_LOAD_LINK;
+                        pc_mode <= PC_LOAD_LINK; 
                     when OP_BR_N =>                       -- Branch to register if negative: PC = Ra if flag_neg
                         mode_ALU  <= ALU_NOP;
                         src_ALU   <= '0';
