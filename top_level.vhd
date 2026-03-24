@@ -259,7 +259,6 @@ begin
             in_p_EN       => decode_in_p_EN,
             out_p_EN      => decode_out_p_EN,
             pc_mode       => pc_mode,
-            pc_reset      => pc_reset,
             branch_target => branch_target,
             branch_taken  => branch_taken
         );
