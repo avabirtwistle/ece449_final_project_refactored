@@ -34,7 +34,7 @@ entity Alu is
     );
 end Alu;
 
-architecture behavioural of Alu is
+architecture Behavioural of Alu is
 begin
 
     process(a, b, control_sel)
@@ -150,4 +150,4 @@ begin
 
     end process;
 
-end behavioural;
+end Behavioural;
