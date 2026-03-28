@@ -41,7 +41,7 @@ package pipeline_registers is
         -- ── Write-back control signals (riding along to WB) ─
         reg_write  : std_logic;                     -- '1' = write to reg file
         wb_src     : std_logic_vector(1 downto 0); -- select write-back source
-        in_p_EN    : std_logic
+        in_p_EN    : std_logic;
     end record;
 
     type MEM_WB is record
@@ -53,7 +53,7 @@ package pipeline_registers is
         -- ── Write-back control signals (consumed in WB) ────
         reg_write  : std_logic;                     -- '1' = write to reg file
         wb_src     : std_logic_vector(1 downto 0); -- select write-back source
-        in_p_EN    : std_logic
+        in_p_EN    : std_logic;
     end record;
 
 end package pipeline_registers;
