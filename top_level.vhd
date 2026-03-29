@@ -78,16 +78,16 @@ architecture Behavioral of Top_Level_CPU is
     signal flag_carry : std_logic;
 
     ---------------------------------------------------------------
-    -- RAM SIGNALS
-    ---------------------------------------------------------------
-    signal ram_ena   : std_logic;
-    signal ram_wea   : std_logic_vector(0 downto 0);
-    signal ram_addra : std_logic_vector(8 downto 0);
-    signal ram_dina  : std_logic_vector(15 downto 0);
-    signal ram_douta : std_logic_vector(15 downto 0);
-    signal ram_enb   : std_logic;
-    signal ram_addrb : std_logic_vector(8 downto 0);
-    signal ram_doutb : std_logic_vector(15 downto 0);
+    --MEM SIGNALS
+    
+    signal mem_alu_result : std_logic_vector(15 downto 0);
+    signal mem_data       : std_logic_vector(15 downto 0);
+    signal mem_dest_reg   : std_logic_vector(2 downto 0);
+    signal mem_pc_plus2   : std_logic_vector(15 downto 0);
+    signal mem_reg_write  : std_logic;
+    signal mem_wb_src     : std_logic_vector(1 downto 0);
+    signal mem_in_p_EN    : std_logic;
+    signal mem_out_p_EN   : std_logic;
 
     ---------------------------------------------------------------
     -- WRITE BACK SIGNALS
@@ -314,5 +314,40 @@ begin
             flag_negative_out => flag_neg,
             flag_carry_out    => flag_carry
         );
+        
+        -- MEMORY COMPONENT INSTANTIATION 
+        u_memory : entity work.memory
+            port map
+            (
+            clk         => clk, 
+            rst         => rst, 
+    
+            -- INPUTS from EX/MEM
+            alu_result  => EX_MEM_reg.alu_result,
+            rd_data2    => EX_MEM_reg.rd_data2,
+            dest_reg    => EX_MEM_reg.dest_reg,
+            pc_plus2    => EX_MEM_reg.pc_plus2,
+    
+            wr_en_MEM   => EX_MEM_reg.wr_en_MEM,
+            reg_write   => EX_MEM_reg.reg_write, 
+            wb_src      => EX_MEM_reg.wb_src,
+            in_p_EN     => EX_MEM_reg.in_p_EN,  
+            out_p_EN    => EX_MEM_reg.out_p_EN,
+    
+            -- OUTPUTS to MEM/WB
+            alu_result_out  => mem_alu_result,
+            mem_data_out    => mem_data,
+            dest_reg_out    => mem_dest_reg,
+            pc_plus2_out    => mem_pc_plus2,
+    
+            reg_write_out   => mem_reg_write,
+            wb_src_out      => mem_wb_src,
+            in_p_EN_out     => mem_in_p_EN,
+            out_p_EN_out    => mem_out_p_EN,
+    
+            -- external output port
+            out_port        => out_port
+            );
+        
 
 end Behavioral;

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import fitz; print\\(''fitz version:'', fitz.__version__\\)\")",
+      "Bash(python3 -c \"import docx; print\\(''python-docx OK''\\)\")",
+      "Bash(python3 -c \"import fitz; print\\(''fitz OK''\\)\")",
+      "Bash(python3 -c \"import docx; print\\(''docx OK''\\)\")",
+      "Read(//usr/**)",
+      "Read(//usr/local/**)",
+      "Bash(ls /c/Python*/python.exe)",
+      "Read(//c/Users/zerrr/AppData/Local/Programs/**)",
+      "Bash(/c/Python313/python.exe --version)",
+      "Bash(/c/Python313/python.exe -c \"import fitz; print\\(''fitz OK''\\)\")",
+      "Bash(/c/Python313/python.exe -c \"import docx; print\\(''docx OK''\\)\")",
+      "Bash(/c/Python313/python.exe -c \"import PIL; print\\(''PIL OK''\\)\")",
+      "Bash(/c/Python313/python.exe -c \"import pdf2image; print\\(''pdf2image OK''\\)\")",
+      "Bash(/c/Python313/python.exe -m pip install pymupdf python-docx Pillow --quiet)",
+      "Bash(/c/Python313/python.exe -c \"import fitz; print\\(''fitz OK:'', fitz.__version__\\)\")",
+      "Bash(/c/Python313/python.exe -c \"from PIL import Image; print\\(''PIL OK''\\)\")",
+      "Bash(/c/Python313/python.exe - << 'PYEOF'\nimport fitz\n\npdf_path = \"C:/Users/zerrr/OneDrive/Desktop/ECE 340 LAB 4/Ece 340 lab 4 .pdf\"\ndoc = fitz.open\\(pdf_path\\)\nprint\\(f\"Total pages: {len\\(doc\\)}\"\\)\nfor i, page in enumerate\\(doc\\):\n    images = page.get_images\\(full=True\\)\n    text_preview = page.get_text\\(\\)[:80].replace\\('\\\\n', ' '\\)\n    print\\(f\"Page {i+1}: {len\\(images\\)} images | text: {text_preview}\"\\)\ndoc.close\\(\\)\nPYEOF)",
+      "Bash(/c/Python313/python.exe -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\npdf_path = 'C:/Users/zerrr/OneDrive/Desktop/ECE 340 LAB 4/Ece 340 lab 4 .pdf'\ndoc = fitz.open\\(pdf_path\\)\nprint\\(f'Total pages: {len\\(doc\\)}'\\)\nfor i, page in enumerate\\(doc\\):\n    images = page.get_images\\(full=True\\)\n    print\\(f'Page {i+1}: {len\\(images\\)} images'\\)\ndoc.close\\(\\)\n\" 2>&1)",
+      "Bash(/c/Python313/python.exe -c \"\nimport fitz, os, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\npdf_path = 'C:/Users/zerrr/OneDrive/Desktop/ECE 340 LAB 4/Ece 340 lab 4 .pdf'\nout_dir = 'C:/Users/zerrr/OneDrive/Desktop/ECE 340 LAB 4/extracted_imgs'\nos.makedirs\\(out_dir, exist_ok=True\\)\ndoc = fitz.open\\(pdf_path\\)\nfor page_num in range\\(len\\(doc\\)\\):\n    page = doc[page_num]\n    images = page.get_images\\(full=True\\)\n    for img_idx, img_info in enumerate\\(images\\):\n        xref = img_info[0]\n        base_image = doc.extract_image\\(xref\\)\n        img_bytes = base_image['image']\n        ext = base_image['ext']\n        fname = f'page{page_num+1}_img{img_idx+1}.{ext}'\n        fpath = os.path.join\\(out_dir, fname\\)\n        with open\\(fpath, 'wb'\\) as f:\n            f.write\\(img_bytes\\)\n        print\\(f'Saved: {fname} \\({len\\(img_bytes\\)} bytes\\)'\\)\ndoc.close\\(\\)\n\" 2>&1)",
+      "Bash(/c/Python313/python.exe -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\npdf_path = 'C:/Users/zerrr/OneDrive/Desktop/ECE 340 LAB 4/ECE340_Lab2RobinRohith \\(2\\).pdf'\ndoc = fitz.open\\(pdf_path\\)\nprint\\(f'Lab2 PDF pages: {len\\(doc\\)}'\\)\nfor i in range\\(min\\(2, len\\(doc\\)\\)\\):\n    page = doc[i]\n    images = page.get_images\\(full=True\\)\n    print\\(f'Page {i+1}: {len\\(images\\)} images'\\)\ndoc.close\\(\\)\n\" 2>&1)",
+      "Bash(/c/Python313/python.exe build_lab4.py)"
+    ]
+  }
+}
