@@ -20,14 +20,11 @@ architecture Behavioral of Top_Level_CPU is
     ---------------------------------------------------------------
     -- PIPELINE REGISTER SIGNALS (record types from pipeline_registers package)
     -- Access fields with dot notation: IF_ID_reg.instruction, etc.
+    -- Keep pipeline Registers in top level;
     ---------------------------------------------------------------
     signal IF_ID_reg  : IF_ID;   -- .instruction, .pc_plus2
     signal ID_EX_reg  : ID_EX;   -- .rd_data1/2, .imm, .dest_reg, .pc_plus2,
                                   -- .alu_mode, .alu_src, .wr_en_MEM, .reg_write, .wb_src
-    --Robin Changes START
-    
-    --               Begin to remove these registers and put them in their proper
-    --               Stage (i.e. EX_MEM goes in the execute stage)
     signal EX_MEM_reg : EX_MEM;  -- .alu_result, .rd_data2, .dest_reg, .pc_plus2,
                                   -- .wr_en_MEM, .reg_write, .wb_src
     --Robin Changes END.                              
@@ -61,11 +58,20 @@ architecture Behavioral of Top_Level_CPU is
 
     signal branch_taken     : std_logic;
 
+    -- eXecute signals 
+    signal exec_rd_data2   : std_logic_vector(15 downto 0);
+    signal exec_dest_reg   : std_logic_vector(2 downto 0);
+    signal exec_pc_plus2   : std_logic_vector(15 downto 0);
+    signal exec_wr_en_MEM  : std_logic;
+    signal exec_reg_write  : std_logic;
+    signal exec_wb_src     : std_logic_vector(1 downto 0);
+    signal exec_in_p_EN    : std_logic;
+    signal exec_out_p_EN   : std_logic;
+
 
     ---------------------------------------------------------------
     -- ALU SIGNALS
     ---------------------------------------------------------------
-    signal alu_op2    : std_logic_vector(15 downto 0); -- mux: register vs immediate
     signal alu_result : std_logic_vector(15 downto 0);
     signal flag_zero  : std_logic;
     signal flag_neg   : std_logic;
@@ -92,10 +98,11 @@ architecture Behavioral of Top_Level_CPU is
     signal wr_en_rf   : std_logic;
 
 begin
-
+    --ROBIN CHANGES START: DELETE THIS 
     -- ALU source mux: '0' = register (rd_data2), '1' = immediate
-    alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
-
+  --  alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
+    --  ROBIN CHANGES END
+    
     -- Write-back mux: WB_ALU = ALU result, WB_MEM = memory data, WB_PC2 = return address
     wb_data <= MEM_WB_reg.mem_data when MEM_WB_reg.wb_src = WB_MEM else
                MEM_WB_reg.pc_plus2 when MEM_WB_reg.wb_src = WB_PC2 else
@@ -162,6 +169,7 @@ begin
             ID_EX_reg.reg_write <= '0';
             ID_EX_reg.wb_src    <= WB_ALU;
             ID_EX_reg.in_p_EN   <= '0';
+            ID_EX_reg.out_p_EN <= '0'; 
         elsif rising_edge(clk) then
             ID_EX_reg.rd_data1  <= decode_rd_data1;
             ID_EX_reg.rd_data2  <= decode_rd_data2;
@@ -174,6 +182,7 @@ begin
             ID_EX_reg.reg_write <= decode_wr_en_REG;
             ID_EX_reg.wb_src    <= decode_sel_WB;
             ID_EX_reg.in_p_EN   <= decode_in_p_EN;
+            ID_EX_reg.out_p_EN  <= decode_out_p_EN;
 
         end if;
     end process;
@@ -190,15 +199,17 @@ begin
             EX_MEM_reg.reg_write  <= '0';
             EX_MEM_reg.wb_src     <= WB_ALU;
             EX_MEM_reg.in_p_EN    <= '0';
+            EX_MEM_reg.out_p_EN   <= '0';
         elsif rising_edge(clk) then
             EX_MEM_reg.alu_result <= alu_result;
-            EX_MEM_reg.rd_data2   <= ID_EX_reg.rd_data2;
-            EX_MEM_reg.dest_reg   <= ID_EX_reg.dest_reg;
-            EX_MEM_reg.pc_plus2   <= ID_EX_reg.pc_plus2;
-            EX_MEM_reg.wr_en_MEM  <= ID_EX_reg.wr_en_MEM;
-            EX_MEM_reg.reg_write  <= ID_EX_reg.reg_write;
-            EX_MEM_reg.wb_src     <= ID_EX_reg.wb_src;
-            EX_MEM_reg.in_p_EN    <= ID_EX_reg.in_p_EN;
+            EX_MEM_reg.rd_data2   <= exec_rd_data2;
+            EX_MEM_reg.dest_reg   <= exec_dest_reg;
+            EX_MEM_reg.pc_plus2   <= exec_pc_plus2;
+            EX_MEM_reg.wr_en_MEM  <= exec_wr_en_MEM;
+            EX_MEM_reg.reg_write  <= exec_reg_write;
+            EX_MEM_reg.wb_src     <= exec_wb_src;
+            EX_MEM_reg.in_p_EN    <= exec_in_p_EN;
+            EX_MEM_reg.out_p_EN   <= exec_out_p_EN;
         end if;
     end process;
 
@@ -213,6 +224,7 @@ begin
             MEM_WB_reg.reg_write  <= '0';
             MEM_WB_reg.wb_src     <= WB_ALU;
             MEM_WB_reg.in_p_EN    <= '0';
+            MEM_WB_reg.out_p_EN   <= '0';
         elsif rising_edge(clk) then
             MEM_WB_reg.alu_result <= EX_MEM_reg.alu_result;
             MEM_WB_reg.mem_data   <= ram_douta;
@@ -221,6 +233,7 @@ begin
             MEM_WB_reg.reg_write  <= EX_MEM_reg.reg_write;
             MEM_WB_reg.wb_src     <= EX_MEM_reg.wb_src;
             MEM_WB_reg.in_p_EN    <= EX_MEM_reg.in_p_EN;
+            MEM_WB_reg.out_p_EN   <= EX_MEM_reg.out_p_EN;
         end if;
     end process;
 
@@ -268,32 +281,38 @@ begin
             branch_target => branch_target,
             branch_taken  => branch_taken
         );
-
-    -- ALU
-    u_alu : entity work.Alu
-        port map (
-            a           => ID_EX_reg.rd_data1,
-            b           => alu_op2,
-            control_sel => ID_EX_reg.alu_mode,
-            result      => alu_result,
-            Carry       => flag_carry,
-            Zero        => flag_zero,
-            Negative    => flag_neg
-        );
-
-    -- RAM
-    u_ram : entity work.ram
-        port map (
-            clk   => clk,
-            rst   => rst,
-            ena   => ram_ena,
-            wea   => ram_wea,
-            addra => ram_addra,
-            dina  => ram_dina,
-            douta => ram_douta,
-            enb   => ram_enb,
-            addrb => ram_addrb,
-            doutb => ram_doutb
+        
+    --ECECUTE COMPONENT INSTANTIATION    
+    u_execute : entity work.execute
+        port map(
+            rd_data1      => ID_EX_reg.rd_data1,
+            rd_data2      => ID_EX_reg.rd_data2,
+            imm           => ID_EX_reg.imm,
+            dest_reg      => ID_EX_reg.dest_reg,
+            pc_plus2      => ID_EX_reg.pc_plus2,
+    
+            alu_mode      => ID_EX_reg.alu_mode,
+            alu_src       => ID_EX_reg.alu_src,
+            wr_en_MEM     => ID_EX_reg.wr_en_MEM,
+            reg_write     => ID_EX_reg.reg_write,
+            wb_src        => ID_EX_reg.wb_src,
+            in_p_EN       => ID_EX_reg.in_p_EN,
+            out_p_EN      => ID_EX_reg.out_p_EN,
+    
+            alu_result        => alu_result,
+            rd_data2_out      => exec_rd_data2,
+            dest_reg_out      => exec_dest_reg,
+            pc_plus2_out      => exec_pc_plus2,
+    
+            wr_en_MEM_out     => exec_wr_en_MEM,
+            reg_write_out     => exec_reg_write,
+            wb_src_out        => exec_wb_src,
+            in_p_EN_out       => exec_in_p_EN,
+            out_p_EN_out      => exec_out_p_EN,
+    
+            flag_zero_out     => flag_zero,
+            flag_negative_out => flag_neg,
+            flag_carry_out    => flag_carry
         );
 
 end Behavioral;
