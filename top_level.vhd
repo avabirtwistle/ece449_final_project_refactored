@@ -73,10 +73,24 @@ architecture Behavioral of top_level_cpu is
     signal write_back_data: std_logic_vector(15 downto 0);
     signal execute_flag_zero: std_logic;
     signal execute_flag_neg: std_logic;
-
+    signal rom_enable: std_logic;
     
     
 begin
+    u_fetch: entity work.fetch
+        port map(
+            clk => clk,
+            reset => reset,
+            rom_ena => rom_enable, -- enable signal for the ROM (can be used to stall the fetch stage when needed)
+            mode => decode_pc_mode,-- selects the mode for the program counter (increment, loading immediate value, etc.)
+            in_pc => decode_branch_target,-- the immediate value to load into the program counter when mode is PC_IM_VALUE
+    
+            -- signals that flow into the IF/ID pipeline register
+            instruction  => IF_ID_reg.instruction, -- the current value of the program counter that will be used to fetch the instruction from ROM
+            pc_plus2_in  => IF_ID_reg.pc_plus2, -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
+            
+        );
+        
     -- process for the IF_ID register
     IF_ID_proc: process(clk, reset)
         begin
@@ -117,7 +131,7 @@ begin
             rd_data2    => decode_rd_data2,
             imm         => decode_imm,
             dest_reg     => decode_dest_reg,
-            pc_plus2_out   => fetch_pc_plus2,
+            pc_plus2_out => decode_pc_plus2,,
             shift_amt  => decode_shift_amt,
     
             -- control outputs toward ID/EX
