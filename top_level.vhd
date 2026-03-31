@@ -42,53 +42,55 @@ entity top_level_cpu is
         out_port: out std_logic_vector(15 downto 0)
         );
 end top_level_cpu;
-
+    
 architecture Behavioral of top_level_cpu is
     -- pipeline register internal signals
-    signal IF_ID_reg: IF_ID; -- pipeline register between the fetch stage and the decode stage
-    signal ID_EX_reg: ID_EX; -- pipeline register between the decode and execute stage
-    
+    signal IF_ID_reg: IF_ID;
+    signal ID_EX_reg: ID_EX;
+
+    -- fetch stage outputs
     signal fetch_instruction: std_logic_vector(15 downto 0);
     signal fetch_pc_plus2: std_logic_vector(15 downto 0);
-    
+
+    -- decode stage outputs
     signal decode_rd_data1  : std_logic_vector(15 downto 0);
     signal decode_rd_data2  : std_logic_vector(15 downto 0);
     signal decode_imm       : std_logic_vector(15 downto 0);
     signal decode_dest_reg  : std_logic_vector(2 downto 0);
     signal decode_pc_plus2  : std_logic_vector(15 downto 0);
-    
+
     signal decode_alu_mode  : std_logic_vector(2 downto 0);
     signal decode_alu_src   : std_logic;
-    signal decode_shift_amt : std_logic_vector(3 downto 0); 
+    signal decode_shift_amt : std_logic_vector(3 downto 0);
     signal decode_wr_en_MEM : std_logic;
     signal decode_wr_en_REG : std_logic;
     signal decode_sel_WB    : std_logic_vector(1 downto 0);
     signal decode_in_p_EN   : std_logic;
     signal decode_out_p_EN  : std_logic;
-    signal decode_pc_mode  : std_logic_vector(1 downto 0);
+    signal decode_pc_mode   : std_logic_vector(1 downto 0);
     signal decode_pc_reset  : std_logic;
     signal decode_branch_target: std_logic_vector(15 downto 0);
-    signal write_back_wr_en: std_logic;
-    signal write_back_dest: std_logic_vector(2 downto 0);
-    signal write_back_data: std_logic_vector(15 downto 0);
+
+    -- later-stage inputs back into decode
+    signal write_back_wr_en : std_logic;
+    signal write_back_dest  : std_logic_vector(2 downto 0);
+    signal write_back_data  : std_logic_vector(15 downto 0);
     signal execute_flag_zero: std_logic;
-    signal execute_flag_neg: std_logic;
+    signal execute_flag_neg : std_logic;
+
     signal rom_enable: std_logic;
     
     
 begin
     u_fetch: entity work.fetch
         port map(
-            clk => clk,
-            reset => reset,
-            rom_ena => rom_enable, -- enable signal for the ROM (can be used to stall the fetch stage when needed)
-            mode => decode_pc_mode,-- selects the mode for the program counter (increment, loading immediate value, etc.)
-            in_pc => decode_branch_target,-- the immediate value to load into the program counter when mode is PC_IM_VALUE
-    
-            -- signals that flow into the IF/ID pipeline register
-            instruction  => IF_ID_reg.instruction, -- the current value of the program counter that will be used to fetch the instruction from ROM
-            pc_plus2_in  => IF_ID_reg.pc_plus2, -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
-            
+            clk         => clk,
+            reset       => reset,
+            rom_ena     => rom_enable,
+            mode        => decode_pc_mode,
+            in_pc       => decode_branch_target,
+            instruction => fetch_instruction,
+            pc_plus2_in => fetch_pc_plus2
         );
         
     -- process for the IF_ID register
@@ -113,8 +115,8 @@ begin
             reset => reset,
     
             -- from IF/ID
-            instruction => fetch_instruction, -- insrr
-            pc_plus2_in  => fetch_pc_plus2,
+            instruction  => IF_ID_reg.instruction,
+            pc_plus2_in  => IF_ID_reg.pc_plus2,
     
             -- from WB stage
             wb_wr_en  => write_back_wr_en,
