@@ -92,44 +92,11 @@ architecture Behavioral of Top_Level_CPU is
     ---------------------------------------------------------------
     -- WRITE BACK SIGNALS
     ---------------------------------------------------------------
-    signal wb_data      : std_logic_vector(15 downto 0);
     signal w_addr_rf  : std_logic_vector(2 downto 0);
     signal w_data_rf  : std_logic_vector(15 downto 0);
     signal wr_en_rf   : std_logic;
 
 begin
-    --ROBIN CHANGES START: DELETE THIS 
-    -- ALU source mux: '0' = register (rd_data2), '1' = immediate
-  --  alu_op2 <= ID_EX_reg.imm when ID_EX_reg.alu_src = '1' else ID_EX_reg.rd_data2;
-    --  ROBIN CHANGES END
-    
-    -- Write-back mux: WB_ALU = ALU result, WB_MEM = memory data, WB_PC2 = return address
-    wb_data <= MEM_WB_reg.mem_data when MEM_WB_reg.wb_src = WB_MEM else
-               MEM_WB_reg.pc_plus2 when MEM_WB_reg.wb_src = WB_PC2 else
-               MEM_WB_reg.alu_result;
-
-    -- Register file write (from MEM/WB stage)
-    w_addr_rf <= MEM_WB_reg.dest_reg;
-    wr_en_rf  <= MEM_WB_reg.reg_write;
-    -- IN instruction mux: if in_p_EN reached WB stage, write in_port directly to reg file
-    w_data_rf <= in_port when MEM_WB_reg.in_p_EN = '1' else wb_data;
-
-
-    -- TODO: RAM enable/address/write logic (memory map decode)
-    -- Suggested memory map:
-    --   ROM : 0x0000 - 0x007F
-    --   RAM : 0x0400 - 0x07FF
-    --   in_port  : 0xFFF0
-    --   out_port : 0xFFF2
-    ram_ena   <= '0'; -- TODO
-    ram_wea   <= "0"; -- TODO
-    ram_addra <= (others => '0'); -- TODO: EX_MEM_reg.alu_result(9 downto 1)
-    ram_dina  <= (others => '0'); -- TODO: EX_MEM_reg.rd_data2
-    ram_enb   <= '0'; -- TODO
-    ram_addrb <= (others => '0'); -- TODO
-
-    -- TODO: out_port logic (OUT instruction or memory-mapped store to 0xFFF2)
-    out_port <= (others => '0'); -- placeholder
 
     ---------------------------------------------------------------
     -- PIPELINE REGISTERS (clocked processes replace missing component files)
@@ -226,14 +193,14 @@ begin
             MEM_WB_reg.in_p_EN    <= '0';
             MEM_WB_reg.out_p_EN   <= '0';
         elsif rising_edge(clk) then
-            MEM_WB_reg.alu_result <= EX_MEM_reg.alu_result;
-            MEM_WB_reg.mem_data   <= ram_douta;
-            MEM_WB_reg.dest_reg   <= EX_MEM_reg.dest_reg;
-            MEM_WB_reg.pc_plus2   <= EX_MEM_reg.pc_plus2;
-            MEM_WB_reg.reg_write  <= EX_MEM_reg.reg_write;
-            MEM_WB_reg.wb_src     <= EX_MEM_reg.wb_src;
-            MEM_WB_reg.in_p_EN    <= EX_MEM_reg.in_p_EN;
-            MEM_WB_reg.out_p_EN   <= EX_MEM_reg.out_p_EN;
+            MEM_WB_reg.alu_result <= mem_alu_result;
+            MEM_WB_reg.mem_data   <= mem_data;
+            MEM_WB_reg.dest_reg   <= mem_dest_reg;
+            MEM_WB_reg.pc_plus2   <= mem_pc_plus2;
+            MEM_WB_reg.reg_write  <= mem_reg_write;
+            MEM_WB_reg.wb_src     <= mem_wb_src;
+            MEM_WB_reg.in_p_EN    <= mem_in_p_EN;
+            MEM_WB_reg.out_p_EN   <= mem_out_p_EN;
         end if;
     end process;
 
@@ -349,5 +316,25 @@ begin
             out_port        => out_port
             );
         
+            -- WRITEBACK COMPONENT INSTANTIATION
+            u_writeback : entity work.writeback
+                port map (
+                    alu_result   => MEM_WB_reg.alu_result,
+                    mem_data     => MEM_WB_reg.mem_data,
+                    dest_reg     => MEM_WB_reg.dest_reg,
+                    pc_plus2     => MEM_WB_reg.pc_plus2,
+        
+                    reg_write    => MEM_WB_reg.reg_write,
+                    wb_src       => MEM_WB_reg.wb_src,
+                    in_p_EN      => MEM_WB_reg.in_p_EN,
+                    out_p_EN     => MEM_WB_reg.out_p_EN,
+        
+                    in_port      => in_port,
+        
+                    wb_data      => w_data_rf,
+                    wb_dest_reg  => w_addr_rf,
+                    wb_reg_write => wr_en_rf,
+                    out_port     => open
+                );
 
 end Behavioral;
