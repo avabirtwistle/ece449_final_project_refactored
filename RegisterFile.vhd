@@ -41,7 +41,7 @@ entity register_file is
         r_data0, r_data1: out std_logic_vector(15 downto 0)
   );
 end register_file;
-a
+
 architecture rtl of register_file is
 
 type reg_file_type is array (7 downto 0) of std_logic_vector(15 downto 0);
