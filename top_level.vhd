@@ -79,8 +79,6 @@ architecture Behavioral of top_level_cpu is
     signal execute_flag_neg : std_logic;
 
     signal rom_enable: std_logic;
-    
-    
 begin
     u_fetch: entity work.fetch
         port map(
@@ -90,7 +88,7 @@ begin
             mode        => decode_pc_mode,
             in_pc       => decode_branch_target,
             instruction => fetch_instruction,
-            pc_plus2_in => fetch_pc_plus2
+            pc => fetch_pc_plus2
         );
         
     -- process for the IF_ID register
@@ -133,7 +131,7 @@ begin
             rd_data2    => decode_rd_data2,
             imm         => decode_imm,
             dest_reg     => decode_dest_reg,
-            pc_plus2_out => decode_pc_plus2,,
+            pc_plus2_out => decode_pc_plus2,
             shift_amt  => decode_shift_amt,
     
             -- control outputs toward ID/EX
@@ -148,7 +146,8 @@ begin
             -- controls toward fetch
             pc_mode        => decode_pc_mode,
             branch_target   => decode_branch_target,
-            pc_reset => decode_pc_reset
+            pc_reset => decode_pc_reset,
+            rom_enable => rom_enable
         );
 
 
@@ -169,6 +168,7 @@ begin
                     ID_EX_reg.reg_write <= '0';
                     ID_EX_reg.wb_src    <= WB_ALU;
                     ID_EX_reg.in_p_EN   <= '0';
+                    ID_EX_reg.out_p_EN <= '0';
                     ID_EX_reg.shift_amt <= (others => '0');           
                 else
                     ID_EX_reg.rd_data1  <= decode_rd_data1;
@@ -182,10 +182,10 @@ begin
                     ID_EX_reg.reg_write <= decode_wr_en_REG;
                     ID_EX_reg.wb_src    <= decode_sel_WB;
                     ID_EX_reg.in_p_EN   <= decode_in_p_EN;
+                    ID_EX_reg.out_p_EN <= decode_out_p_EN;
                     ID_EX_reg.shift_amt <= decode_shift_amt;  
                 end if;
             end if;
     end process;
     
 end Behavioral;
-
