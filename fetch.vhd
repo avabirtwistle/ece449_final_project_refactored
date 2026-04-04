@@ -64,5 +64,4 @@ begin
 
     pc <= pc_sig_internal; -- connect the internal signal to the output port to pass the current value of the program counter to the IF/ID pipeline register
     instruction <= instruction_sig_internal; -- connect the internal signal to the output port to pass the fetched instruction to the IF/ID pipeline register
-
 end Behavioral;
