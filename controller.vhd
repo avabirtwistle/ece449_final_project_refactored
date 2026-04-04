@@ -38,9 +38,12 @@ entity controller is
         -- Branch / PC Control
         pc_src      : out std_logic;
         pc_mode       : out std_logic_vector(1 downto 0);
-        pc_reset : out std_logic
+        pc_reset : out std_logic;
+        
+        rom_enable: out std_logic
     );
 end controller;
+
 
 architecture Behavioral of controller is
      
@@ -291,4 +294,5 @@ begin
             end case;
         end if;      
     end process;
+    rom_enable <= '1' when reset = '0' else '0';
 end behavioral;
