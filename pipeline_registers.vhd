@@ -27,6 +27,8 @@ package pipeline_registers is
         reg_write : std_logic;
         wb_src    : std_logic_vector(1 downto 0);
         in_p_EN   : std_logic;
+        out_p_EN  : std_logic; 
+        shift_amt : std_logic_vector(3 downto 0); 
     end record;
 
     type EX_MEM is record
