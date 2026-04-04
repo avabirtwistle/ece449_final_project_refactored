@@ -56,19 +56,17 @@ begin
     begin 
         if rising_edge(clk) then
             if reset = '1' then
-                if mode = PC_BOOT_MODE then
-                    pc_curr <= PC_RESET_AND_LOAD_VAL;
-                else
-                    pc_curr <= PC_RESET_AND_EXECUTE_VAL; -- reset the program counter to 0
-            end if;
+                pc_curr <= (others => '0'); -- reset the program counter to 0
             else
                 case mode is
                     when PC_INCREMENT =>
                         pc_curr <= std_logic_vector(unsigned(pc_curr) + 2); -- increment by 2 to get the next instruction address
-                    when PC_LOAD_NEW_VAL =>
+                    when PC_IM_VALUE =>
                         pc_curr <= in_pc; -- load the immediate value into the program counter
                     when PC_STALL => -- can be removed (here for readability)
                         pc_curr <= pc_curr; -- hold the current value of the program counter
+                    when PC_TBD => --  can be removed (here for readability)
+                        pc_curr <= pc_curr; -- to be determined (for future use, if needed)
                     when others => -- do nothing
                 end case;
             end if;
