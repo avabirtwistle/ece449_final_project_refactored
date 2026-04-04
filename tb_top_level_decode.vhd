@@ -1,8 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity tb_top_level_decode is
-end tb_top_level_decode;
+entity tb_top_level_cpu is
+end tb_top_level_cpu;
 
 architecture sim of tb_top_level_cpu is
     signal clk       : std_logic := '0';
@@ -12,6 +12,7 @@ architecture sim of tb_top_level_cpu is
     signal out_port  : std_logic_vector(15 downto 0);
 begin
 
+   
     uut : entity work.top_level_cpu
         port map(
             clk       => clk,
