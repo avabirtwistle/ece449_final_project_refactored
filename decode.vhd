@@ -44,7 +44,8 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
-        pc_reset: out std_logic
+        pc_reset: out std_logic;
+        rom_enable: out std_logic
     );
 end decode;
 
@@ -99,7 +100,8 @@ begin
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
                 pc_mode => pc_mode_internal,
-                pc_reset => pc_reset
+                pc_reset => pc_reset,
+                rom_enable => rom_enable
             );
     -- send the internal signals to the output ports
     rd_data1 <= rd_data1_internal;
