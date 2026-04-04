@@ -44,7 +44,6 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
-        branch_taken  : out std_logic;
         pc_reset: out std_logic
     );
 end decode;
@@ -52,37 +51,25 @@ end decode;
 
 architecture Behavioral of decode is
     signal opcode_internal          : std_logic_vector(6 downto 0);
-    signal source_1_internal        : std_logic_vector(2 downto 0);
-    signal source_2_internal        : std_logic_vector(2 downto 0);
-    signal destination_reg_internal : std_logic_vector(2 downto 0);
-    signal shift_amount_internal    : std_logic_vector(3 downto 0);
-    signal disp_long_internal       : std_logic_vector(8 downto 0);
-    signal disp_short_internal      : std_logic_vector(5 downto 0);
-
-    signal source_1_data            : std_logic_vector(15 downto 0);
-    signal source_2_data            : std_logic_vector(15 downto 0);
-
-    signal r_addr0_sel              : std_logic_vector(2 downto 0);
-    signal r_addr1_sel              : std_logic_vector(2 downto 0);
-
-    signal pc_src_internal          : std_logic;
+    signal source_1_internal        : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
+    signal source_2_internal        : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
+    signal rd_data1_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
+    signal rd_data2_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
+    signal pc_mode_internal          : std_logic_vector(1 downto 0); -- we need to read this in a process and also output the mode to fetch
+    signal disp: signed(15 downto 0);
+    signal pc_plus2_internal         : std_logic_vector(15 downto 0);
 begin
 
         u_decoder : entity work.decoder
             port map(
                 instruction => instruction, -- input
                 opcode      => opcode_internal, -- opcode needed for controller
-                destination_reg => destination_reg_internal, -- index for register a
-                source_1 => source_1_internal, -- index for register b
-                source_2 => source_2_internal, -- index for register c
-                shift_amount => shift_amount_internal, -- the amount to shift
-                disp_long   => disp_long_internal, -- the long displacement for branch instructions
-                disp_short  => disp_short_internal -- the short displacement for branch instructions
+                destination_reg => dest_reg, -- index for register a, sent to the register file
+                source_1 => source_1_internal, -- index for register b, sent to the register file
+                source_2 => source_2_internal, -- index for register c, sent to the register file
+                shift_amt => shift_amt, -- the amount to shift
+                disp => disp
             );
-
-         -- RETURN reads the link register instead of the normal Ra field.
-        r_addr0_sel <= LINK_REGISTER when opcode_internal = OP_RETURN else source_1_internal;
-        r_addr1_sel <= source_2_internal;
 
         u_regfile : entity work.register_file
             port map(
@@ -91,15 +78,14 @@ begin
                 wr_en   => wb_wr_en,
                 w_addr  => wb_dest,
                 w_data  => wb_data,
-                r_addr0 => r_addr0_sel,
-                r_addr1 => r_addr1_sel,
-                r_data0 => source_1_data,
-                r_data1 => source_2_data
+                r_addr0 => source_1_internal,
+                r_addr1 => source_2_internal,
+                r_data0 => rd_data1_internal, -- internal signal so we can output this to the decode output port and so it can be used for branch calc
+                r_data1 => rd_data2_internal
             );
 
         u_controller : entity work.controller
             port map(
-                clk       => clk,
                 reset     => reset,
                 opcode    => opcode_internal,
                 flag_zero => flag_zero,
@@ -112,61 +98,41 @@ begin
                 sel_WB    => sel_WB,
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
-                pc_src    => pc_src_internal,
+                pc_mode => pc_mode_internal,
                 pc_reset => pc_reset
             );
-    branch_taken <= pc_src_internal;
-    process(
-            opcode_internal,
-            destination_reg_internal,
-            shift_amount_internal,
-            disp_long_internal,
-            disp_short_internal,
-            source_1_data,
-            source_2_data,
-            pc_plus2_in,
-            pc_src_internal
-        )    
+    -- send the internal signals to the output ports
+    rd_data1 <= rd_data1_internal;
+    rd_data2 <= rd_data2_internal;
+    pc_mode <= pc_mode_internal; 
+    pc_plus2_out <= pc_plus2_in;
+    pc_plus2_internal <= pc_plus2_in;
+    -- TODO check if the process list is necessry
+    -- this process updates the branch_target which is the value the program counter will load from when the 
+    -- pc_mode is set to PC_LOAD_NEW_VALUE. When the pc loads values due to reset, this is handled directly within the 
+    -- program counter logic (i.e. the "branch_target" needed for a reset should not be specified here)
+    -- the pc will decide what to load for reset based on the control signals pc_reset and pc_boot_mode
+    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
     begin
-            rd_data1      <= source_1_data;
-            rd_data2      <= source_2_data;
-            imm           <= (others => '0');
-            dest_reg      <= destination_reg_internal;
-            pc_plus2_out  <= pc_plus2_in;
-            branch_target <= source_1_data;
-            pc_mode       <= PC_INCREMENT;
-            pc_reset       <= '0';
+            imm           <= (others => '0'); -- TODO figure out what this is supposed to do... does it require reg read ?
+            branch_target <= (others => '0'); 
 
-       if pc_src_internal = '1' then
-            pc_mode <= PC_LOAD_LINK;
+        -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
+        if pc_mode_internal = PC_LOAD_NEW_VAL then
+            case opcode_internal is
+                when OP_BRR | OP_BRR_N | OP_BRR_Z =>
+                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp);
+    
+                when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
+                    branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
+    
+                when OP_RETURN =>
+                    branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
+    
+                when others =>
+                    null;
+            end case;
         end if;
-
-        case opcode_internal is
-            when OP_SHL | OP_SHR =>
-                shift_amt <= shift_amount_internal;
-
-            when OP_BRR | OP_BRR_N | OP_BRR_Z =>
-                branch_target <= std_logic_vector(
-                    signed(pc_plus2_in) + shift_left(resize(signed(disp_long_internal), 16), 1)
-                );
-
-            when OP_BR | OP_BR_N | OP_BR_Z =>
-                branch_target <= std_logic_vector(
-                    signed(source_1_data) + shift_left(resize(signed(disp_short_internal), 16), 1)
-                    );
-
-            when OP_BR_SUB =>
-                dest_reg <= LINK_REGISTER;
-                branch_target <= std_logic_vector(
-                    signed(source_1_data) + shift_left(resize(signed(disp_short_internal), 16), 1)
-                    );
-                    
-            when OP_RETURN =>
-                branch_target <= source_1_data;
-
-            when others =>
-                null;
-        end case;
     end process;
 
 end Behavioral;

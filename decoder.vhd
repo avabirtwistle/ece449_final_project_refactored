@@ -15,8 +15,7 @@ entity decoder is
         source_1 : out std_logic_vector(2 downto 0); -- the index of the register to read for operand 1 (for R-type instructions) or the register to read for branch comparison (for branch instructions)
         source_2 : out std_logic_vector(2 downto 0); -- the index of the register to read for operand 2 (for R-type instructions)
         shift_amt : out std_logic_vector(3 downto 0); -- the amount to shift for shift instructions
-        disp_long   : out std_logic_vector(8 downto 0); -- the
-        disp_short  : out std_logic_vector(5 downto 0) -- the short displacement for branch instructions
+        disp: out signed(15 downto 0)
         );
 end decoder;
 
@@ -25,12 +24,13 @@ begin
     process(instruction) -- only needs to run when the INSTUCTION changes, but it doesn't matter if it runs more often than that
         begin
             -- defaults
+            opcode <= instruction(15 downto 9);
             destination_reg <= (others => '0');
-            source_1        <= (others => '0');
-            source_2        <= (others => '0');
+            source_1        <= (others => '0'); -- the first data source to read
+            source_2        <= (others => '0'); -- the second data source to read
             shift_amt    <= (others => '0');
-            disp_long       <= (others => '0');
-            disp_short      <= (others => '0');
+            disp <= (others => '0');
+            
             case instruction(15 downto 9) is 
                 when OP_NOP => -- format A0
                     NULL;
@@ -44,19 +44,26 @@ begin
                 when OP_SHL | OP_SHR =>-- A2 Format
                     source_1 <= instruction(8 downto 6); -- index for ra
                     destination_reg <= instruction(8 downto 6);
-                    shift_amount <= instruction(3 downto 0);
+                    shift_amt <= instruction(3 downto 0);
 
                 when OP_TEST | OP_OUT | OP_IN =>-- A3 Format
                     source_1 <= instruction(8 downto 6); -- index for register we are testing
                 
                 -- Format B
                 when OP_BRR | OP_BRR_N | OP_BRR_Z => -- B1 format
-                    disp_long <= instruction(8 downto 0);
+                   disp <= shift_left(resize(signed(instruction(8 downto 0)), 16), 1); -- the displcement amount to add
+                
                 when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB => -- format b2
                     source_1 <= instruction(8 downto 6); -- index for the register we will add the displacement to
-                    disp_short <= instruction(5 downto 0);
+                    disp <= shift_left(resize(signed(instruction(5 downto 0)), 16), 1); -- the displcement amount to add
+                
+                    if instruction(15 downto 9) = OP_BR_SUB then
+                        destination_reg <= LINK_REGISTER;
+                    end if;
+                
                 when OP_RETURN => -- format b3
                     source_1 <= LINK_REGISTER; -- register 7
+                
                 when others=>
                     null;
             end case;
