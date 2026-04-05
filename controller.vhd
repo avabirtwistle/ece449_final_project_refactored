@@ -2,11 +2,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 library work;
+<<<<<<< HEAD
 use work.constant_package.all; 
 
 entity controller is
     port(
         clk         : in  std_logic;
+=======
+use work.constants_package.all; 
+
+entity controller is
+    port(
+>>>>>>> main
         reset       : in  std_logic;
 
         -- Input from IF/ID pipeline register (Instruction bits 15 downto 9)
@@ -39,6 +46,7 @@ entity controller is
         -- Branch / PC Control
         pc_src      : out std_logic;
         pc_mode       : out std_logic_vector(1 downto 0);
+<<<<<<< HEAD
         pc_reset : out std_logic
     );
 end controller;
@@ -68,6 +76,20 @@ begin
     fsm_out : process(current_state, opcode, flag_zero, flag_neg, boot_mode)
     begin
         -- Safe defaults
+=======
+        pc_reset : out std_logic;
+        
+        rom_enable: out std_logic
+    );
+end controller;
+
+
+architecture Behavioral of controller is
+     
+begin
+    fsm_seq : process(opcode, reset, flag_zero, flag_neg, boot_mode)
+    begin
+>>>>>>> main
         mode_ALU  <= ALU_NOP;
         src_ALU   <= '0';
         wr_en_MEM <= '0';
@@ -78,6 +100,7 @@ begin
         pc_src    <= '0'; -- denotes if we will take a branch or not
         pc_mode <= PC_INCREMENT; -- the signal for selecting the program counter mode in the fetch module
         pc_reset <= '0'; -- for reseting the program counter in the fetch module
+<<<<<<< HEAD
         case current_state is
 
             -- RESET
@@ -322,4 +345,241 @@ begin
         end case;
     end process;
 
+=======
+        if reset = '1' then
+                if boot_mode = '1' then -- reset and execute
+                    pc_mode <= PC_BOOT_MODE; 
+                else
+                    pc_mode <= PC_INCREMENT; -- reset and load, the program counter just needs pc_reset =1 and the pc_mode to not be PC_BOOT_MODE in order to recognize this state
+                end if;
+                pc_reset<='1'; -- output the reset is 1
+        else
+            case opcode is
+                when OP_NOP =>
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+
+                when OP_ADD =>
+                    mode_ALU  <= ALU_ADD;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_SUB =>
+                    mode_ALU  <= ALU_SUB;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_MUL =>
+                    mode_ALU  <= ALU_MUL;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_NAND =>
+                    mode_ALU  <= ALU_NAND;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_SHL =>
+                    mode_ALU  <= ALU_SHL;
+                    src_ALU   <= '1'; -- 1 because the operand for the shift amount comes from the immediate field path
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_SHR =>
+                    mode_ALU  <= ALU_SHR;
+                    src_ALU   <= '1'; -- 1 because the operand for shift amount comes from immediate field path
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_TEST =>
+                    mode_ALU  <= ALU_TEST;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';  -- TEST sets flags only
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_OUT =>
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '1';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_IN =>
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '1';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+                    
+                when OP_BRR =>                        -- Branch relative, unconditional: PC = PC + imm
+                    mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '1';                 -- always take branch
+                    pc_mode <= PC_LOAD_NEW_VAL;
+                    
+                when OP_BRR_N =>                      -- Branch relative if negative: PC = PC + imm if flag_neg
+                    mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= flag_neg;            -- take branch only if negative flag set
+                    if flag_neg = '1' then 
+                        pc_mode <= PC_LOAD_NEW_VAL;
+                    else
+                        pc_mode <= PC_INCREMENT;
+                    end if;
+                    
+                when OP_BRR_Z =>                      -- Branch relative if zero: PC = PC + imm if flag_zero
+                    mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= flag_zero;           -- take branch only if zero flag set
+                    if flag_zero = '1' then 
+                        pc_mode <= PC_LOAD_NEW_VAL;
+                    else
+                        pc_mode <= PC_INCREMENT;
+                    end if;
+
+                when OP_BR =>                         -- Branch to register, unconditional: PC = Ra
+                    mode_ALU  <= ALU_NOP;             -- no ALU computation; target is register value
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '1';                 -- always take branch
+                    pc_mode <= PC_LOAD_NEW_VAL; 
+                when OP_BR_N =>                       -- Branch to register if negative: PC = Ra if flag_neg
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= flag_neg;
+                    if flag_neg = '1' then 
+                        pc_mode <= PC_LOAD_NEW_VAL;
+                    else
+                        pc_mode <= PC_INCREMENT;
+                    end if;
+                    
+                when OP_BR_Z =>                       -- Branch to register if zero: PC = Ra if flag_zero
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= flag_zero;
+                    if flag_zero = '1' then 
+                        pc_mode <= PC_LOAD_NEW_VAL;
+                    else
+                        pc_mode <= PC_INCREMENT;
+                    end if;
+                    
+                when OP_BR_SUB =>                     -- Branch to subroutine: PC = Ra, save PC+2 to link reg
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';                 -- write return address (PC+2) to link register
+                    sel_WB    <= WB_PC2;              -- select PC+2 as write-back value
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '1';                 -- always take branch
+                    pc_mode <= PC_LOAD_NEW_VAL;
+
+                when OP_RETURN =>                     -- Return from subroutine: PC = Ra (we need r7?) (link register) 
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '1';                 -- load PC from link register
+                    pc_mode <= PC_LOAD_NEW_VAL;
+                when others =>
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode <= PC_INCREMENT;
+            end case;
+        end if;      
+    end process;
+    rom_enable <= '1' when reset = '0' else '0';
+>>>>>>> main
 end behavioral;
