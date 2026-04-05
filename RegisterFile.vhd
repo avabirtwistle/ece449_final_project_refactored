@@ -34,11 +34,12 @@ use ieee.numeric_std.all;
 
 entity register_file is
   Port (
-        clk, reset, wr_en: in std_logic;
-        w_addr: in std_logic_vector(2 downto 0);
-        w_data: in std_logic_vector(15 downto 0);
-        r_addr0, r_addr1: in std_logic_vector(2 downto 0);
-        r_data0, r_data1: out std_logic_vector(15 downto 0)
+        clk, reset, wr_en: in std_logic; 
+        w_addr: in std_logic_vector(2 downto 0); -- the index of the register to write to when wr_en is high
+        w_data: in std_logic_vector(15 downto 0); -- the data to write
+        r_addr0, r_addr1: in std_logic_vector(2 downto 0); -- the indices of the registers to read from
+        
+        r_data0, r_data1: out std_logic_vector(15 downto 0) -- the data read from the registers indexed by r_addr0 and r_addr1, respectively
   );
 end register_file;
 
@@ -51,7 +52,7 @@ signal array_next: reg_file_type;
 signal en: std_logic_vector(7 downto 0);
 
 begin
-    process(clk,reset)
+    process(clks)
     begin
         if(reset = '1') then
             array_reg(0) <= (others => '0');
