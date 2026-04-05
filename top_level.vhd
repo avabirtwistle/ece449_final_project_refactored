@@ -38,6 +38,7 @@ architecture Behavioral of Top_Level_CPU is
     signal fetch_instr   : std_logic_vector(15 downto 0); -- instruction out of fetch
     signal pc_mode       : std_logic_vector(1 downto 0);  -- drives fetch mode port
     signal branch_target : std_logic_vector(15 downto 0); -- address to load on branch
+    
 
       ---------------------------------------------------------------
     -- DECODE STAGE SIGNALS
@@ -56,7 +57,15 @@ architecture Behavioral of Top_Level_CPU is
     signal decode_in_p_EN   : std_logic;
     signal decode_out_p_EN  : std_logic;
 
+    signal pc_reset         : std_logic;
+
+    -- Robin Changes Start
+    -- Explanation of changes:
+    -- 1) branch_taken is the controller/decode decision that a branch is actually being taken.
+    -- 2) The IF/ID register will use this to flush the wrong-path fetched instruction.
+    -- Robin Changes End.
     signal branch_taken     : std_logic;
+    
 
     -- eXecute signals 
     signal exec_rd_data2   : std_logic_vector(15 downto 0);
@@ -103,20 +112,29 @@ begin
     ---------------------------------------------------------------
 
     -- IF/ID Register: latches fetch output into decode stage
+    -- IF/ID Register: latches fetch output into decode stage
     IF_ID_proc : process(clk, rst)
     begin
         if rst = '1' then
             IF_ID_reg.instruction <= (others => '0');
             IF_ID_reg.pc_plus2    <= (others => '0');
         elsif rising_edge(clk) then
-            if branch_taken = '1' then
+            -- if pc_reset = '1' then
+
+            -- Robin Changes Start
+            -- Explanation of changes:
+            -- 1) Flush IF/ID on reset-control or on a taken branch.
+            -- 2) Store real PC+2, not raw fetch_pc.
+            -- Robin Changes End.
+            if pc_reset = '1' or branch_taken = '1' then
 
                 -- branch taken: flush the incorrectly-fetched instruction with a NOP
                 IF_ID_reg.instruction <= (others => '0');
                 IF_ID_reg.pc_plus2    <= (others => '0');
             else
                 IF_ID_reg.instruction <= fetch_instr;
-                IF_ID_reg.pc_plus2    <= fetch_pc;
+                -- IF_ID_reg.pc_plus2    <= fetch_pc;
+                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc) + 2);
             end if;
         end if;
     end process;
@@ -136,7 +154,8 @@ begin
             ID_EX_reg.reg_write <= '0';
             ID_EX_reg.wb_src    <= WB_ALU;
             ID_EX_reg.in_p_EN   <= '0';
-            ID_EX_reg.out_p_EN <= '0'; 
+            ID_EX_reg.out_p_EN  <= '0';
+            ID_EX_reg.in_data   <= (others => '0');
         elsif rising_edge(clk) then
             ID_EX_reg.rd_data1  <= decode_rd_data1;
             ID_EX_reg.rd_data2  <= decode_rd_data2;
@@ -150,7 +169,7 @@ begin
             ID_EX_reg.wb_src    <= decode_sel_WB;
             ID_EX_reg.in_p_EN   <= decode_in_p_EN;
             ID_EX_reg.out_p_EN  <= decode_out_p_EN;
-
+            ID_EX_reg.in_data   <= in_port;
         end if;
     end process;
 
@@ -167,6 +186,7 @@ begin
             EX_MEM_reg.wb_src     <= WB_ALU;
             EX_MEM_reg.in_p_EN    <= '0';
             EX_MEM_reg.out_p_EN   <= '0';
+            EX_MEM_reg.in_data    <= (others => '0');
         elsif rising_edge(clk) then
             EX_MEM_reg.alu_result <= alu_result;
             EX_MEM_reg.rd_data2   <= exec_rd_data2;
@@ -177,6 +197,7 @@ begin
             EX_MEM_reg.wb_src     <= exec_wb_src;
             EX_MEM_reg.in_p_EN    <= exec_in_p_EN;
             EX_MEM_reg.out_p_EN   <= exec_out_p_EN;
+            EX_MEM_reg.in_data    <= ID_EX_reg.in_data;
         end if;
     end process;
 
@@ -192,6 +213,7 @@ begin
             MEM_WB_reg.wb_src     <= WB_ALU;
             MEM_WB_reg.in_p_EN    <= '0';
             MEM_WB_reg.out_p_EN   <= '0';
+            MEM_WB_reg.in_data    <= (others => '0');
         elsif rising_edge(clk) then
             MEM_WB_reg.alu_result <= mem_alu_result;
             MEM_WB_reg.mem_data   <= mem_data;
@@ -201,6 +223,7 @@ begin
             MEM_WB_reg.wb_src     <= mem_wb_src;
             MEM_WB_reg.in_p_EN    <= mem_in_p_EN;
             MEM_WB_reg.out_p_EN   <= mem_out_p_EN;
+            MEM_WB_reg.in_data    <= EX_MEM_reg.in_data;
         end if;
     end process;
 
@@ -220,7 +243,7 @@ begin
             instruction => fetch_instr
         );
 
-    u_decode : entity work.decode
+        u_decode : entity work.decode
         port map(
             clk           => clk,
             reset         => rst,
@@ -244,8 +267,15 @@ begin
             sel_WB        => decode_sel_WB,
             in_p_EN       => decode_in_p_EN,
             out_p_EN      => decode_out_p_EN,
+            shift_amt     => open,
             pc_mode       => pc_mode,
             branch_target => branch_target,
+            pc_reset      => pc_reset,
+
+            -- Robin Changes Start
+            -- Explanation of changes:
+            -- 1) Hook up the new branch_taken output from decode.
+            -- Robin Changes End.
             branch_taken  => branch_taken
         );
         
@@ -329,8 +359,8 @@ begin
                     in_p_EN      => MEM_WB_reg.in_p_EN,
                     out_p_EN     => MEM_WB_reg.out_p_EN,
         
-                    in_port      => in_port,
-        
+                    in_data      => MEM_WB_reg.in_data,
+
                     wb_data      => w_data_rf,
                     wb_dest_reg  => w_addr_rf,
                     wb_reg_write => wr_en_rf,

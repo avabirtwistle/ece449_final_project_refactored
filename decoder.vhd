@@ -24,30 +24,56 @@ begin
     process(instruction) -- only needs to run when the INSTUCTION changes, but it doesn't matter if it runs more often than that
         begin
             -- defaults
-            opcode <= instruction(15 downto 9);
+            -- opcode <= instruction(15 downto 9);
+
+            -- Robin Changes Start
+            -- Explanation of changes:
+            -- 1) Leave opcode driven by the concurrent assignment at the bottom of the file.
+            -- 2) Split TEST / OUT / IN into separate cases.
+            -- 3) IN writes to destination_reg because bits [8:6] name the register being loaded.
+            -- 4) OUT also drives source_2 so the selected register value is available on rd_data2.
+            -- Robin Changes End.
             destination_reg <= (others => '0');
             source_1        <= (others => '0'); -- the first data source to read
             source_2        <= (others => '0'); -- the second data source to read
-            shift_amt    <= (others => '0');
-            disp <= (others => '0');
+            shift_amt       <= (others => '0');
+            disp            <= (others => '0');
             
             case instruction(15 downto 9) is 
                 when OP_NOP => -- format A0
                     NULL;
 
                 -- Format A
-                when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>-- A1 Format
-                    destination_reg<= instruction(8 downto 6); -- index for ra
-                    source_1<= instruction(5 downto 3); -- index for rb
-                    source_2<= instruction(2 downto 0); -- index for rc
+                when OP_ADD | OP_SUB | OP_MUL | OP_NAND => -- A1 Format
+                    destination_reg <= instruction(8 downto 6); -- index for ra
+                    source_1        <= instruction(5 downto 3); -- index for rb
+                    source_2        <= instruction(2 downto 0); -- index for rc
 
-                when OP_SHL | OP_SHR =>-- A2 Format
-                    source_1 <= instruction(8 downto 6); -- index for ra
+                when OP_SHL | OP_SHR => -- A2 Format
+                    source_1        <= instruction(8 downto 6); -- index for ra
                     destination_reg <= instruction(8 downto 6);
-                    shift_amt <= instruction(3 downto 0);
+                    shift_amt       <= instruction(3 downto 0);
 
-                when OP_TEST | OP_OUT | OP_IN =>-- A3 Format
+                -- when OP_TEST | OP_OUT |OP_IN => -- A3 Format
+                --     source_1 <= instruction(8 downto 6); -- index for register we are testing
+                -- --                when OP_IN   => 
+                -- --                    destination_reg <= instruction (8 downto 6); -- Changed OP_IN from source_1 to destination register
+
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- TEST only needs source_1.
+                -- OUT should place the selected register on source_2 as well so it can ride the rd_data2 path.
+                -- IN should target destination_reg so the external input gets written into the requested register.
+                -- Robin Changes End.
+                when OP_TEST => -- A3 Format
                     source_1 <= instruction(8 downto 6); -- index for register we are testing
+
+                when OP_OUT => -- A3 Format
+                    source_1 <= instruction(8 downto 6);
+                    source_2 <= instruction(8 downto 6);
+
+                when OP_IN => -- A3 Format
+                    destination_reg <= instruction(8 downto 6);
                 
                 -- Format B
                 when OP_BRR | OP_BRR_N | OP_BRR_Z => -- B1 format
@@ -64,9 +90,10 @@ begin
                 when OP_RETURN => -- format b3
                     source_1 <= LINK_REGISTER; -- register 7
                 
-                when others=>
+                when others =>
                     null;
             end case;
     end process;
+
     opcode <= instruction(15 downto 9);
 end Behavioral;

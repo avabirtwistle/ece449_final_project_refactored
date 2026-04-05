@@ -30,7 +30,7 @@ entity decode is
         imm           : out std_logic_vector(15 downto 0);
         dest_reg      : out std_logic_vector(2 downto 0);
         pc_plus2_out  : out std_logic_vector(15 downto 0);
-        shift_amt : out std_logic_vector(3 downto 0); 
+        shift_amt     : out std_logic_vector(3 downto 0); 
 
         -- control outputs toward ID/EX
         alu_mode      : out std_logic_vector(2 downto 0);
@@ -44,20 +44,23 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
-        pc_reset: out std_logic
+        pc_reset      : out std_logic;
+        branch_taken  : out std_logic
     );
 end decode;
 
 
 architecture Behavioral of decode is
-    signal opcode_internal          : std_logic_vector(6 downto 0);
-    signal source_1_internal        : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
-    signal source_2_internal        : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
-    signal rd_data1_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
-    signal rd_data2_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
-    signal pc_mode_internal          : std_logic_vector(1 downto 0); -- we need to read this in a process and also output the mode to fetch
-    signal disp: signed(15 downto 0);
-    signal pc_plus2_internal         : std_logic_vector(15 downto 0);
+    signal opcode_internal       : std_logic_vector(6 downto 0);
+    signal source_1_internal     : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
+    signal source_2_internal     : std_logic_vector(2 downto 0); -- index mapped between the decoder component and the register file
+    signal rd_data1_internal     : std_logic_vector(15 downto 0); -- needed for output and branch calculation
+    signal rd_data2_internal     : std_logic_vector(15 downto 0); -- needed for output and branch calculation
+    signal pc_mode_internal      : std_logic_vector(1 downto 0); -- we need to read this in a process and also output the mode to fetch
+    signal disp                  : signed(15 downto 0);
+    signal pc_plus2_internal     : std_logic_vector(15 downto 0);
+    signal shift_amt_internal    : std_logic_vector(3 downto 0);
+    signal branch_taken_internal : std_logic;
 begin
 
         u_decoder : entity work.decoder
@@ -67,7 +70,13 @@ begin
                 destination_reg => dest_reg, -- index for register a, sent to the register file
                 source_1 => source_1_internal, -- index for register b, sent to the register file
                 source_2 => source_2_internal, -- index for register c, sent to the register file
-                shift_amt => shift_amt, -- the amount to shift
+                -- shift_amt => shift_amt, -- the amount to shift
+
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Capture shift_amt on an internal signal so we can both output it and build imm from it.
+                -- Robin Changes End.
+                shift_amt => shift_amt_internal, -- the amount to shift
                 disp => disp
             );
 
@@ -86,6 +95,7 @@ begin
 
         u_controller : entity work.controller
             port map(
+                clk       => clk,
                 reset     => reset,
                 opcode    => opcode_internal,
                 flag_zero => flag_zero,
@@ -98,37 +108,92 @@ begin
                 sel_WB    => sel_WB,
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
-                pc_mode => pc_mode_internal,
-                pc_reset => pc_reset
+                -- pc_src    => open,
+
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Bring the controller's branch decision out of decode.
+                -- 2) Top level will use this to flush IF/ID on a taken branch.
+                -- Robin Changes End.
+                pc_src    => branch_taken_internal,
+                pc_mode   => pc_mode_internal,
+                pc_reset  => pc_reset
             );
+
     -- send the internal signals to the output ports
-    rd_data1 <= rd_data1_internal;
-    rd_data2 <= rd_data2_internal;
-    pc_mode <= pc_mode_internal; 
-    pc_plus2_out <= pc_plus2_in;
+    rd_data1      <= rd_data1_internal;
+    rd_data2      <= rd_data2_internal;
+    pc_mode       <= pc_mode_internal; 
+    pc_plus2_out  <= pc_plus2_in;
     pc_plus2_internal <= pc_plus2_in;
+    shift_amt     <= shift_amt_internal;
+    branch_taken  <= branch_taken_internal;
+
     -- TODO check if the process list is necessry
     -- this process updates the branch_target which is the value the program counter will load from when the 
     -- pc_mode is set to PC_LOAD_NEW_VALUE. When the pc loads values due to reset, this is handled directly within the 
     -- program counter logic (i.e. the "branch_target" needed for a reset should not be specified here)
     -- the pc will decide what to load for reset based on the control signals pc_reset and pc_boot_mode
-    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
+    -- process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
+    -- begin
+    --         imm           <= (others => '0'); -- TODO figure out what this is supposed to do... does it require reg read ?
+    --         branch_target <= (others => '0'); 
+
+    --     -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
+    --     if pc_mode_internal = PC_LOAD_LINK then
+    --         case opcode_internal is
+    --             when OP_BRR | OP_BRR_N | OP_BRR_Z =>
+    --                 branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp);
+    
+    --             when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
+    --                 branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
+    
+    --             when OP_RETURN =>
+    --                 branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
+    
+    --             when others =>
+    --                 null;
+    --         end case;
+    --     end if;
+    -- end process;
+
+    -- Robin Changes Start
+    -- Explanation of changes:
+    -- 1) imm is now generated properly instead of being hardwired to zero.
+    -- 2) SHL/SHR use the shift amount as the low 4 bits of imm.
+    -- 3) Branch opcodes expose the sign-extended displacement on imm for debug/consistency.
+    -- 4) branch_target is only generated when the branch is actually being taken.
+    -- 5) rd_data1_internal is included in the process sensitivity.
+    -- Robin Changes End.
+    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal, rd_data1_internal, shift_amt_internal, branch_taken_internal)    
     begin
-            imm           <= (others => '0'); -- TODO figure out what this is supposed to do... does it require reg read ?
-            branch_target <= (others => '0'); 
+        imm           <= (others => '0');
+        branch_target <= (others => '0'); 
+
+        case opcode_internal is
+            when OP_SHL | OP_SHR =>
+                imm(3 downto 0) <= shift_amt_internal;
+
+            when OP_BRR | OP_BRR_N | OP_BRR_Z |
+                 OP_BR  | OP_BR_N  | OP_BR_Z  | OP_BR_SUB =>
+                imm <= std_logic_vector(disp);
+
+            when others =>
+                null;
+        end case;
 
         -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
-        if pc_mode_internal = PC_LOAD_NEW_VAL then
+        if branch_taken_internal = '1' and pc_mode_internal = PC_LOAD_LINK then
             case opcode_internal is
                 when OP_BRR | OP_BRR_N | OP_BRR_Z =>
                     branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp);
-    
+
                 when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
                     branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
-    
+
                 when OP_RETURN =>
                     branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
-    
+
                 when others =>
                     null;
             end case;
