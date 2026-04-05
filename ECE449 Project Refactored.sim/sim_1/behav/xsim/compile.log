@@ -1,0 +1,8 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/zerrr/Desktop/ece449_final_project_refactored/decoder.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'decoder'
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/zerrr/Desktop/ece449_final_project_refactored/decode.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'decode'
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/zerrr/Desktop/ece449_final_project_refactored/top_level.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'Top_Level_CPU'
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/zerrr/Desktop/ece449_final_project_refactored/sim_testbenches/tb_FormatA_Test.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'tb_FormatA_Test'

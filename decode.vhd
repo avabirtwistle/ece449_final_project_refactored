@@ -30,7 +30,7 @@ entity decode is
         imm           : out std_logic_vector(15 downto 0);
         dest_reg      : out std_logic_vector(2 downto 0);
         pc_plus2_out  : out std_logic_vector(15 downto 0);
-        shift_amt : out std_logic_vector(3 downto 0); 
+        shift_amt     : out std_logic_vector(3 downto 0); 
 
         -- control outputs toward ID/EX
         alu_mode      : out std_logic_vector(2 downto 0);
