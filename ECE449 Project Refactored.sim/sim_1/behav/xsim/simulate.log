@@ -1,0 +1,7 @@
+Time resolution is 1 ps
+Info: [XPM_MEMORY 20-2] MEMORY_INIT_FILE (none), MEMORY_INIT_PARAM together specify no memory initialization. Initial memory contents will be all 0's. tb_FormatA_Test.uut.u_memory.u_ram.xpm_memory_dpdistram_inst.xpm_memory_base_inst.config_drc 48
+Time: 1 ps  Iteration: 0  Process: /tb_FormatA_Test/uut/u_memory/u_ram/xpm_memory_dpdistram_inst/xpm_memory_base_inst/Initial310_5  Scope: tb_FormatA_Test.uut.u_memory.u_ram.xpm_memory_dpdistram_inst.xpm_memory_base_inst.config_drc  File: C:/AMDDesignTools/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv Line: 524
+Warning: [XPM_MEMORY 30-15] MEMORY_TYPE (2) and MEMORY_PRIMITIVE (1) together specify a true dual port distributed RAM, which will be mapped to a dual port RAM structure using port A and B read interfaces but a single port A write interface, leaving the port B write interface unused. tb_FormatA_Test.uut.u_memory.u_ram.xpm_memory_dpdistram_inst.xpm_memory_base_inst.config_drc
+Time: 1 ps  Iteration: 0  Process: /tb_FormatA_Test/uut/u_memory/u_ram/xpm_memory_dpdistram_inst/xpm_memory_base_inst/Initial310_5  Scope: tb_FormatA_Test.uut.u_memory.u_ram.xpm_memory_dpdistram_inst.xpm_memory_base_inst.config_drc  File: C:/AMDDesignTools/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv Line: 561
+Note: FormatA_Test passed.
+Time: 365 ns  Iteration: 0  Process: /tb_FormatA_Test/stim_proc  File: C:/Users/zerrr/Desktop/ece449_final_project_refactored/sim_testbenches/tb_FormatA_Test.vhd
