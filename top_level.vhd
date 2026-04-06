@@ -106,6 +106,7 @@ architecture Behavioral of Top_Level_CPU is
     signal flag_zero  : std_logic;
     signal flag_neg   : std_logic;
     signal flag_carry : std_logic;
+    signal flag_overflow : std_logic;
 
     ---------------------------------------------------------------
     --MEM SIGNALS
@@ -266,7 +267,17 @@ id_ex_flush <= stall_pipe;
                 ID_EX_reg.wb_src    <= decode_sel_WB;
                 ID_EX_reg.in_p_EN   <= decode_in_p_EN;
                 ID_EX_reg.out_p_EN  <= decode_out_p_EN;
-                ID_EX_reg.in_data   <= in_port;
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Reuse the auxiliary ridealong path for both IN data and LOADIMM values.
+                -- 2) IN continues to carry external in_port.
+                -- 3) LOADIMM carries the synthesized immediate from decode using WB_AUX.
+                -- Robin Changes End.
+                if decode_sel_WB = WB_AUX then
+                    ID_EX_reg.in_data <= decode_imm;
+                else
+                    ID_EX_reg.in_data <= in_port;
+                end if;
             end if;
         end if;
     end process;
@@ -359,6 +370,7 @@ id_ex_flush <= stall_pipe;
             wb_data       => w_data_rf,
             flag_zero     => flag_zero,
             flag_neg      => flag_neg,
+            flag_overflow => flag_overflow,
             boot_mode     => boot_mode,
             rd_data1      => decode_rd_data1,
             rd_data2      => decode_rd_data2,
@@ -423,7 +435,8 @@ id_ex_flush <= stall_pipe;
 
             flag_zero_out     => flag_zero,
             flag_negative_out => flag_neg,
-            flag_carry_out    => flag_carry
+            flag_carry_out    => flag_carry,
+            flag_overflow_out => flag_overflow
         );
 
         -- MEMORY COMPONENT INSTANTIATION

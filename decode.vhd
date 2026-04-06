@@ -22,6 +22,7 @@ entity decode is
         -- flags / mode into controller
         flag_zero     : in  std_logic;
         flag_neg      : in  std_logic;
+        flag_overflow : in  std_logic;
         boot_mode     : in  std_logic;
 
         -- outputs to ID/EX
@@ -110,6 +111,7 @@ begin
                 opcode    => opcode_internal,
                 flag_zero => flag_zero,
                 flag_neg  => flag_neg,
+                flag_overflow => flag_overflow,
                 boot_mode => boot_mode,
                 mode_ALU  => alu_mode,
                 src_ALU   => alu_src,
@@ -161,6 +163,13 @@ begin
                 src1_used <= '1';
                 src2_used <= '1';
 
+            when OP_LOAD | OP_MOV | OP_LOADIMM =>
+                src1_used <= '1';
+
+            when OP_STORE =>
+                src1_used <= '1';
+                src2_used <= '1';
+
             when OP_SHL | OP_SHR | OP_TEST =>
                 src1_used <= '1';
 
@@ -183,7 +192,7 @@ begin
     -- 4) branch_target is only generated when the branch is actually being taken.
     -- 5) rd_data1_internal is included in the process sensitivity.
     -- Robin Changes End.
-    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal, rd_data1_internal, shift_amt_internal, branch_taken_internal)
+    process(instruction, opcode_internal, disp, pc_plus2_internal, pc_mode_internal, rd_data1_internal, shift_amt_internal, branch_taken_internal)
     begin
         imm           <= (others => '0');
         branch_target <= (others => '0');
@@ -192,7 +201,24 @@ begin
             when OP_SHL | OP_SHR =>
                 imm(3 downto 0) <= shift_amt_internal;
 
-            when OP_BRR | OP_BRR_N | OP_BRR_Z |
+            when OP_LOAD | OP_STORE | OP_MOV =>
+                imm <= (others => '0');
+
+            when OP_LOADIMM =>
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) LOADIMM updates R7 in two steps:
+                --    bit 8 = 0 writes the low byte, bit 8 = 1 writes the high byte.
+                -- 2) Keep the untouched byte from the current R7 value so
+                --    LOADIMM.LOWER / LOADIMM.UPPER can be composed back-to-back.
+                -- Robin Changes End.
+                if instruction(8) = '0' then
+                    imm <= rd_data1_internal(15 downto 8) & instruction(7 downto 0);
+                else
+                    imm <= instruction(7 downto 0) & rd_data1_internal(7 downto 0);
+                end if;
+
+            when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V |
                  OP_BR  | OP_BR_N  | OP_BR_Z  | OP_BR_SUB =>
                 imm <= std_logic_vector(disp);
 
@@ -203,7 +229,7 @@ begin
         -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
         if branch_taken_internal = '1' and pc_mode_internal = PC_LOAD_LINK then
             case opcode_internal is
-                when OP_BRR | OP_BRR_N | OP_BRR_Z =>
+                when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V =>
                     -- Robin Changes Start
                     -- Explanation of changes:
                     -- 1) BRR-family displacements in this ISA are relative to the current instruction

@@ -73,8 +73,7 @@ entity execute is
         out_p_EN_out  : out std_logic; -- shouldnt these just be ridealongs? 
         flag_zero_out     : out std_logic; -- I feel like the flags should be just a 2 bit number to tell which flag is selected
         flag_negative_out : out std_logic; -- 00 = no flags, 01 = zero out, 10 = negative out 11 = carry out, but i guess we can 
-        flag_carry_out    : out std_logic; -- the only thing stopping me from doing this is if there is a case when 
-        flag_overflow_out : out std_logic -- signed multiply overflow for BRR.overflow
+        flag_carry_out    : out std_logic -- the only thing stopping me from doing this is if there is a case when 
                                            -- two flags could occur at the same time.
 
    );
@@ -91,7 +90,6 @@ architecture Behavioral of execute is
     signal flag_zero_internal     : std_logic;
     signal flag_negative_internal : std_logic;
     signal flag_carry_internal    : std_logic;
-    signal flag_overflow_internal : std_logic;
 
 begin
 
@@ -117,8 +115,7 @@ begin
             control_sel => control_sel_internal,
             Carry       => flag_carry_internal,
             Zero        => flag_zero_internal,
-            Negative    => flag_negative_internal,
-            Overflow    => flag_overflow_internal
+            Negative    => flag_negative_internal
         );
 
     ------------------------------------------------------------------------
@@ -141,6 +138,5 @@ begin
     flag_zero_out     <= flag_zero_internal;
     flag_negative_out <= flag_negative_internal;
     flag_carry_out    <= flag_carry_internal;
-    flag_overflow_out <= flag_overflow_internal;
 
 end Behavioral;

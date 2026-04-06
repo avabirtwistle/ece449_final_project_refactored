@@ -17,6 +17,7 @@ package constant_package is
     constant WB_ALU : std_logic_vector(1 downto 0) := "00";
     constant WB_MEM : std_logic_vector(1 downto 0) := "01";
     constant WB_PC2 : std_logic_vector(1 downto 0) := "10";
+    constant WB_AUX : std_logic_vector(1 downto 0) := "11";
 
     -- TODO: add more ALU operation modes as needed
 
@@ -56,6 +57,7 @@ package constant_package is
     constant OP_BRR      : std_logic_vector(6 downto 0) := "1000000"; -- 64, branch
     constant OP_BRR_N    : std_logic_vector(6 downto 0) := "1000001"; -- 65, branch if not zero
     constant OP_BRR_Z    : std_logic_vector(6 downto 0) := "1000010"; -- 66, branch if zero
+    constant OP_BRR_V    : std_logic_vector(6 downto 0) := "1001000"; -- 72, branch relative if overflow
     constant OP_BR       : std_logic_vector(6 downto 0) := "1000011"; -- 67, branch if negative
     constant OP_BR_N     : std_logic_vector(6 downto 0) := "1000100"; -- 68, branch if not negative
     constant OP_BR_Z     : std_logic_vector(6 downto 0) := "1000101"; -- 69, branch if not zero and not negative

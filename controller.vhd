@@ -15,6 +15,7 @@ entity controller is
         -- Status flags from ALU
         flag_zero   : in  std_logic;
         flag_neg    : in  std_logic;
+        flag_overflow : in std_logic;
 
         -- Boot mode
         -- '0' = Reset & Execute (PC -> 0x0000)
@@ -65,7 +66,7 @@ begin
     end process;
 
     -- Combinational output logic
-    fsm_out : process(current_state, opcode, flag_zero, flag_neg, boot_mode)
+    fsm_out : process(current_state, opcode, flag_zero, flag_neg, flag_overflow, boot_mode)
     begin
         -- Safe defaults
         mode_ALU  <= ALU_NOP;
@@ -168,6 +169,57 @@ begin
                         out_p_EN  <= '0';
                         pc_src    <= '0';
                         pc_mode <= PC_INCREMENT;
+
+                    -- Robin Changes Start
+                    -- Explanation of changes:
+                    -- 1) Add control support for the currently used Format L instructions.
+                    -- 2) MOV, LOAD, and STORE use ALU_ADD with an immediate 0 so the execute stage
+                    --    can pass the source/address register value through as alu_result.
+                    -- 3) LOADIMM writes the synthesized immediate value from the auxiliary ridealong path.
+                    -- Robin Changes End.
+                    when OP_LOAD =>
+                        mode_ALU  <= ALU_ADD;
+                        src_ALU   <= '1';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '1';
+                        sel_WB    <= WB_MEM;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '0';
+                        pc_mode   <= PC_INCREMENT;
+
+                    when OP_STORE =>
+                        mode_ALU  <= ALU_ADD;
+                        src_ALU   <= '1';
+                        wr_en_MEM <= '1';
+                        wr_en_REG <= '0';
+                        sel_WB    <= WB_ALU;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '0';
+                        pc_mode   <= PC_INCREMENT;
+
+                    when OP_LOADIMM =>
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '1';
+                        sel_WB    <= WB_AUX;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '0';
+                        pc_mode   <= PC_INCREMENT;
+
+                    when OP_MOV =>
+                        mode_ALU  <= ALU_ADD;
+                        src_ALU   <= '1';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '1';
+                        sel_WB    <= WB_ALU;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '0';
+                        pc_mode   <= PC_INCREMENT;
                         
                     when OP_TEST =>
                         mode_ALU  <= ALU_TEST;
@@ -238,6 +290,21 @@ begin
                         out_p_EN  <= '0';
                         pc_src    <= flag_zero;           -- take branch only if zero flag set
                         if flag_zero = '1' then 
+                            pc_mode <= PC_LOAD_LINK;
+                        else
+                            pc_mode <= PC_INCREMENT;
+                        end if;
+
+                    when OP_BRR_V =>                      -- Branch relative if signed multiply overflow
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '0';
+                        sel_WB    <= WB_ALU;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= flag_overflow;
+                        if flag_overflow = '1' then
                             pc_mode <= PC_LOAD_LINK;
                         else
                             pc_mode <= PC_INCREMENT;

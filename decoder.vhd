@@ -54,6 +54,30 @@ begin
                     destination_reg <= instruction(8 downto 6);
                     shift_amt       <= instruction(3 downto 0);
 
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Add Format L decode support for LOAD, STORE, LOADIMM, and MOV.
+                -- 2) LOAD uses bits [8:6] as destination and bits [5:3] as the address register.
+                -- 3) STORE uses bits [8:6] as the address register and bits [5:3] as the data register.
+                -- 4) LOADIMM builds a value in the link register (R7), so it both reads and writes R7.
+                -- 5) MOV copies source register bits [5:3] into destination bits [8:6].
+                -- Robin Changes End.
+                when OP_LOAD => -- Format L
+                    destination_reg <= instruction(8 downto 6);
+                    source_1        <= instruction(5 downto 3);
+
+                when OP_STORE => -- Format L
+                    source_1 <= instruction(8 downto 6);
+                    source_2 <= instruction(5 downto 3);
+
+                when OP_LOADIMM => -- Format L
+                    destination_reg <= LINK_REGISTER;
+                    source_1        <= LINK_REGISTER;
+
+                when OP_MOV => -- Format L
+                    destination_reg <= instruction(8 downto 6);
+                    source_1        <= instruction(5 downto 3);
+
                 -- when OP_TEST | OP_OUT |OP_IN => -- A3 Format
                 --     source_1 <= instruction(8 downto 6); -- index for register we are testing
                 -- --                when OP_IN   => 
@@ -76,7 +100,7 @@ begin
                     destination_reg <= instruction(8 downto 6);
                 
                 -- Format B
-                when OP_BRR | OP_BRR_N | OP_BRR_Z => -- B1 format
+                when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V => -- B1 format
                    disp <= shift_left(resize(signed(instruction(8 downto 0)), 16), 1); -- the displcement amount to add
                 
                 when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB => -- format b2
