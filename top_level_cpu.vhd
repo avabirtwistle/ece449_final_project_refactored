@@ -70,13 +70,23 @@ architecture Behavioral of top_level_cpu is
     signal decode_pc_mode   : std_logic_vector(1 downto 0);
     signal decode_pc_reset  : std_logic;
     signal decode_branch_target: std_logic_vector(15 downto 0);
-
+    signal exec_rd_data2   : std_logic_vector(15 downto 0);
+    signal exec_dest_reg   : std_logic_vector(2 downto 0);
+    signal exec_pc_plus2   : std_logic_vector(15 downto 0);
+    signal exec_wr_en_MEM  : std_logic;
+    signal exec_reg_write  : std_logic;
+    signal exec_wb_src     : std_logic_vector(1 downto 0);
+    signal exec_in_p_EN    : std_logic;
+    signal exec_out_p_EN   : std_logic;
+    signal exec_alu_result : std_logic_vector(15 downto 0);
+    signal exec_flag_zero: std_logic;
+    signal exec_flag_neg : std_logic;
+    signal exec_flag_carry : std_logic;
     -- later-stage inputs back into decode
     signal write_back_wr_en : std_logic;
     signal write_back_dest  : std_logic_vector(2 downto 0);
     signal write_back_data  : std_logic_vector(15 downto 0);
-    signal execute_flag_zero: std_logic;
-    signal execute_flag_neg : std_logic;
+
 
     signal rom_enable: std_logic;
 begin
@@ -122,8 +132,8 @@ begin
             wb_data   => write_back_data,
     
             -- flags / mode into controller
-            flag_zero   => execute_flag_zero,
-            flag_neg    => execute_flag_neg,
+            flag_zero   => exec_flag_zero,
+            flag_neg    => exec_flag_neg,
             boot_mode   => boot_mode,
     
             -- outputs to ID/EX
@@ -169,7 +179,8 @@ begin
                     ID_EX_reg.wb_src    <= WB_ALU;
                     ID_EX_reg.in_p_EN   <= '0';
                     ID_EX_reg.out_p_EN <= '0';
-                    ID_EX_reg.shift_amt <= (others => '0');           
+                    ID_EX_reg.shift_amt <= (others => '0');  
+                    ID_EX_reg.in_data  <= (others => '0');          
                 else
                     ID_EX_reg.rd_data1  <= decode_rd_data1;
                     ID_EX_reg.rd_data2  <= decode_rd_data2;
@@ -184,8 +195,41 @@ begin
                     ID_EX_reg.in_p_EN   <= decode_in_p_EN;
                     ID_EX_reg.out_p_EN <= decode_out_p_EN;
                     ID_EX_reg.shift_amt <= decode_shift_amt;  
+                    ID_EX_reg.in_data  <= in_port;  
                 end if;
             end if;
     end process;
     
+    u_execute : entity work.execute
+    port map(
+        rd_data1      => ID_EX_reg.rd_data1,
+        rd_data2      => ID_EX_reg.rd_data2,
+        imm           => ID_EX_reg.imm,
+        dest_reg      => ID_EX_reg.dest_reg,
+        pc_plus2      => ID_EX_reg.pc_plus2,
+
+        alu_mode      => ID_EX_reg.alu_mode,
+        alu_src       => ID_EX_reg.alu_src,
+        wr_en_MEM     => ID_EX_reg.wr_en_MEM,
+        reg_write     => ID_EX_reg.reg_write,
+        wb_src        => ID_EX_reg.wb_src,
+        in_p_EN       => ID_EX_reg.in_p_EN,
+        out_p_EN      => ID_EX_reg.out_p_EN,
+        shift_amount      => ID_EX_reg.shift_amt,
+--------------OUTPUTS to ex/mem---------------------------------
+
+        alu_result        => exec_alu_result,
+        rd_data2_out      => exec_rd_data2,
+        dest_reg_out      => exec_dest_reg,
+        pc_plus2_out      => exec_pc_plus2,
+
+        wr_en_MEM_out     => exec_wr_en_MEM,
+        reg_write_out     => exec_reg_write,
+        wb_src_out        => exec_wb_src,
+        in_p_EN_out       => exec_in_p_EN,
+        out_p_EN_out      => exec_out_p_EN,
+        flag_zero_out     => exec_flag_zero,
+        flag_negative_out => exec_flag_neg,
+        flag_carry_out    => exec_flag_carry
+    );
 end Behavioral;

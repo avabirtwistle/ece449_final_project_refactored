@@ -21,7 +21,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use work.constant_package.all;
+use work.constants_package.all; 
 
 entity Alu is
     port(
@@ -36,7 +36,7 @@ entity Alu is
     );
 end Alu;
 
-architecture Behavioural of Alu is
+architecture behavioural of Alu is
 begin
 
     process(a, b, control_sel)
@@ -152,4 +152,4 @@ begin
 
     end process;
 
-end Behavioural;
+end behavioural;
