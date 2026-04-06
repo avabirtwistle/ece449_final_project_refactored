@@ -1,4 +1,0 @@
--- instantiate each of the stages here and connect the ports appropriately
--- instantiate each of the pipeline registers here and connect the ports appropriately
--- instantiate the controller and connect the output commands of the decode stage to the controller
--- connect the control signals from the controller to the appropriate stages and pipeline registers
