@@ -24,7 +24,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-use work.constant_package.all;
+use work.constants_package.all;
 use work.pipeline_registers.all;  -- gives IF_ID, ID_EX, EX_MEM record types
 
 -- Uncomment the following library declaration if using
@@ -58,6 +58,7 @@ entity execute is
         wb_src     : in std_logic_vector(1 downto 0);
         in_p_EN    : in std_logic; -- think should be ride along
         out_p_EN   : in std_logic; -- think should be ride along
+        shift_amount: in  std_logic_vector(3 downto 0) ;                                  -- two flags could occur at the same time.
 
 --------------OUTPUTS to ex/mem---------------------------------
 
@@ -74,7 +75,6 @@ entity execute is
         flag_zero_out     : out std_logic; -- I feel like the flags should be just a 2 bit number to tell which flag is selected
         flag_negative_out : out std_logic; -- 00 = no flags, 01 = zero out, 10 = negative out 11 = carry out, but i guess we can 
         flag_carry_out    : out std_logic -- the only thing stopping me from doing this is if there is a case when 
-                                           -- two flags could occur at the same time.
 
    );
 end execute;
@@ -90,7 +90,7 @@ architecture Behavioral of execute is
     signal flag_zero_internal     : std_logic;
     signal flag_negative_internal : std_logic;
     signal flag_carry_internal    : std_logic;
-
+    signal shift_amount_internal    : std_logic_vector(3 downto 0);
 begin
 
     ------------------------------------------------------------------------
@@ -109,6 +109,7 @@ begin
     ------------------------------------------------------------------------
     u_alu : entity work.Alu
         port map(
+            shift_amount => shift_amount_internal,
             a           => source_1_data_internal,
             b           => source_2_data_internal,
             result      => result_internal,
