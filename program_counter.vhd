@@ -1,24 +1,24 @@
--- Company: 
--- Engineer: 
--- 
+-- Company:
+-- Engineer:
+--
 -- Create Date: 02/09/2026 04:54:41 PM
--- Design Name: 
+-- Design Name:
 -- Module Name: ProgramCounter - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
+-- Project Name:
+-- Target Devices:
+-- Tool Versions:
+-- Description:
+--
+-- Dependencies:
+--
 -- Revision:
 -- Revision 0.01 - File Created
 -- Additional Comments:
 -- For the case switch in the process, we need to increment the current value of the program counter by 2
 -- the current value of the program counter is access externally on the out_pc port. Since this is an output port
--- we cannot read from it directly, increment it by 2 and then output this new value as we would essentially be using the 
--- output port as an input which is not allowed. To get around this, we can use an internal signal (pc_curr) to grab the current value 
--- so we can increment it 
+-- we cannot read from it directly, increment it by 2 and then output this new value as we would essentially be using the
+-- output port as an input which is not allowed. To get around this, we can use an internal signal (pc_curr) to grab the current value
+-- so we can increment it
 
 ----------------------------------------------------------------------------------
 
@@ -38,10 +38,19 @@ use work.constant_package.all;
 --use UNISIM.VComponents.all;
 
 entity program_counter is
-Port ( 
+Port (
     clk: in std_logic;
     reset: in std_logic;
+
+    -- Robin Changes Start
+    -- Explanation of changes:
+    -- 1) Added ena so the PC can be frozen during a pipeline stall.
+    -- 2) When ena = '0', the PC simply holds its current value.
+    -- Robin Changes End.
+    -- mode: in std_logic_vector(1 downto 0);
+    ena: in std_logic;
     mode: in std_logic_vector(1 downto 0);
+
     in_pc: in std_logic_vector(15 downto 0); -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
 
     out_pc: out std_logic_vector(15 downto 0) -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
@@ -53,24 +62,46 @@ architecture Behavioral of program_counter is
 begin
     -- Process to update the program counter on the rising edge of the clock
     process(clk)
-    begin 
+    begin
         if rising_edge(clk) then
             if reset = '1' then
-                if mode = PC_BOOT_MODE then
-                    pc_curr <= PC_RESET_AND_LOAD_VAL;
+                if mode = PC_BOOT then
+                    pc_curr <= PC_BOOT_VALUE;
                 else
-                    pc_curr <= PC_RESET_AND_EXECUTE_VAL; -- reset the program counter to 0
-            end if;
+                    pc_curr <= PC_RESET_VALUE; -- reset the program counter to 0
+                end if;
             else
-                case mode is
-                    when PC_INCREMENT =>
-                        pc_curr <= std_logic_vector(unsigned(pc_curr) + 2); -- increment by 2 to get the next instruction address
-                    when PC_LOAD_NEW_VAL =>
-                        pc_curr <= in_pc; -- load the immediate value into the program counter
-                    when PC_STALL => -- can be removed (here for readability)
-                        pc_curr <= pc_curr; -- hold the current value of the program counter
-                    when others => -- do nothing
-                end case;
+
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Wrapped the existing PC mode update logic inside an enable check.
+                -- 2) If ena = '0', the PC holds its value so fetch is stalled cleanly.
+                -- 3) The old PC_STALL case is still kept for readability and compatibility.
+                -- Robin Changes End.
+                if ena = '1' then
+                    case mode is
+                        when PC_INCREMENT =>
+                            pc_curr <= std_logic_vector(unsigned(pc_curr) + 2); -- increment by 2 to get the next instruction address
+                        when PC_LOAD_LINK =>
+                            pc_curr <= in_pc; -- load the immediate value into the program counter
+                        when PC_STALL => -- can be removed (here for readability)
+                            pc_curr <= pc_curr; -- hold the current value of the program counter
+                        when others => -- do nothing
+                            pc_curr <= pc_curr;
+                    end case;
+                else
+                    pc_curr <= pc_curr; -- explicit hold during pipeline stall
+                end if;
+
+                -- case mode is
+                --     when PC_INCREMENT =>
+                --         pc_curr <= std_logic_vector(unsigned(pc_curr) + 2); -- increment by 2 to get the next instruction address
+                --     when PC_LOAD_LINK =>
+                --         pc_curr <= in_pc; -- load the immediate value into the program counter
+                --     when PC_STALL => -- can be removed (here for readability)
+                --         pc_curr <= pc_curr; -- hold the current value of the program counter
+                --     when others => -- do nothing
+                -- end case;
             end if;
         end if;
     end process;

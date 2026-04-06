@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.constants_package.all;
+use work.constant_package.all;
 
 entity decoder is
     port(
@@ -90,9 +90,10 @@ begin
                 when OP_RETURN => -- format b3
                     source_1 <= LINK_REGISTER; -- register 7
                 
-                when others=>
+                when others =>
                     null;
             end case;
     end process;
+
     opcode <= instruction(15 downto 9);
 end Behavioral;

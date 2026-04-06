@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package constants_package is 
+package constant_package is 
 
     -- ALU operation modes
     constant ALU_NOP  : std_logic_vector(2 downto 0) := "000";
@@ -24,11 +24,14 @@ package constants_package is
 
     -- program counter modes
     constant PC_INCREMENT : std_logic_vector(1 downto 0) := "00"; -- increment the PC by 2 to point to the next instruction
-    constant PC_LOAD_NEW_VAL      : std_logic_vector(1 downto 0) := "01"; -- update the PC with an immediate value (for jumps and branches)
-    constant PC_STALL           : std_logic_vector(1 downto 0) := "10"; -- hold the current value of the PC (no update)
-    constant PC_BOOT_MODE         : std_logic_vector(1 downto 0) := "11"; -- to be determined (for future use, if needed)
-    constant PC_RESET_AND_EXECUTE_VAL        : std_logic_vector(15 downto 0) := x"0000";
-    constant PC_RESET_AND_LOAD_VAL        : std_logic_vector(15 downto 0) := x"0002";
+    constant PC_IM_VALUE  : std_logic_vector(1 downto 0) := "01"; -- update the PC with an immediate value (for jumps and branches)
+    constant PC_LOAD_LINK : std_logic_vector(1 downto 0) := "01"; -- load PC from in_pc (branches/jumps/return)
+    constant PC_STALL     : std_logic_vector(1 downto 0) := "10"; -- hold the current value of the PC (no update)
+    constant PC_BOOT      : std_logic_vector(1 downto 0) := "11"; -- reset PC to boot address (execute mode)
+
+    -- program counter reset values
+    constant PC_BOOT_VALUE  : std_logic_vector(15 downto 0) := x"0210"; -- execute-mode reset vector (program start)
+    constant PC_RESET_VALUE : std_logic_vector(15 downto 0) := x"0000"; -- load-mode reset vector
 
 
     -- The opcode values for the instruction types
@@ -68,4 +71,4 @@ package constants_package is
     constant LINK_REGISTER      : std_logic_vector(2 downto 0) := "111"; -- 7, return from interrupt (jump to address in r7 and restore r7 with value at top of stack, increment stack pointer)
 
 
-end package constants_package;
+end package constant_package;

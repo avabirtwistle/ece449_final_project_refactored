@@ -29,7 +29,6 @@ package pipeline_registers is
         in_p_EN   : std_logic;
         out_p_EN  : std_logic;
         in_data   : std_logic_vector(15 downto 0);
-        shift_amt : std_logic_vector(3 downto 0); 
     end record;
 
     type EX_MEM is record
@@ -45,11 +44,8 @@ package pipeline_registers is
         reg_write  : std_logic;                     -- '1' = write to reg file
         wb_src     : std_logic_vector(1 downto 0); -- select write-back source
         in_p_EN    : std_logic;
-<<<<<<< HEAD
         out_p_EN   : std_logic;
         in_data    : std_logic_vector(15 downto 0);
-=======
->>>>>>> main
     end record;
 
     type MEM_WB is record
