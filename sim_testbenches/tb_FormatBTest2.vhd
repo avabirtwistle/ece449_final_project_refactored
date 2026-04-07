@@ -44,7 +44,7 @@ begin
         wait_n_rising_edges(clk, 2);
         rst <= '0';
 
-        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
+        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 3);
 
         wait_n_rising_edges(clk, 80);
 

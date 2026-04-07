@@ -25,14 +25,14 @@ use work.constants_package.all;
 
 entity Alu is
     port(
-        shift_amount: in  std_logic_vector(3 downto 0);
         a           : in  std_logic_vector(15 downto 0); -- first operand for ALU operations
         b           : in  std_logic_vector(15 downto 0); -- second operand for ALU operations
         result      : out std_logic_vector(15 downto 0); -- output of the ALU operation
         control_sel : in  std_logic_vector(2 downto 0); -- selects the ALU operation
         Carry       : out std_logic; -- carry flag for addition and subtraction
         Zero        : out std_logic; -- zero flag for result of ALU operation
-        Negative    : out std_logic -- negative flag for result of ALU operation
+        Negative    : out std_logic; -- negative flag for result of ALU operation
+        Overflow    : out std_logic  -- signed overflow flag, used by BRR.overflow
     );
 end Alu;
 
@@ -50,6 +50,7 @@ begin
         -- defaults
         temp_result := (others => '0');
         Carry       <= '0';
+        Overflow    <= '0';
 
         case control_sel is -- determines which operation to perform
 
@@ -78,6 +79,16 @@ begin
                 mult_result := signed(a) * signed(b);
                 temp_result := std_logic_vector(mult_result(15 downto 0));
                 Carry <= '0';
+                -- Robin Changes Start
+                -- Explanation of changes:
+                -- 1) Detect signed 16-bit overflow on multiply using the full 32-bit product.
+                -- 2) This drives the new BRR.overflow control path used by the factorial overflow test.
+                -- Robin Changes End.
+                if mult_result > to_signed(32767, 32) or mult_result < to_signed(-32768, 32) then
+                    Overflow <= '1';
+                else
+                    Overflow <= '0';
+                end if;
 
             -- 100 = NAND
             -- R[ra] <- R[ra] NAND R[rb]

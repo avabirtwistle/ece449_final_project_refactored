@@ -16,7 +16,7 @@ architecture sim of tb_FactorialTestOverflow is
     signal out_port  : std_logic_vector(15 downto 0);
 
     constant INPUTS : slv16_array_t(0 to 0) := (
-        0 => x"0005"
+        0 => x"0008"
     );
 begin
     uut : entity work.Top_Level_CPU
@@ -32,21 +32,23 @@ begin
 
     stim_proc : process
     begin
-        -- This .mem image is assembled at 0x0500, so it needs either:
-        --   1) a boot/reset vector of 0x0500, or
-        --   2) a manual PC preload before releasing reset.
-        -- The program image currently does NOT contain active overflow handling,
-        -- so with input 5 it should still produce 120.
+        -- Robin Changes Start
+        -- Explanation of changes:
+        -- 1) The overflow factorial program image is now arranged to run from the standard
+        --    execute reset vector and includes an active BRR.overflow handler.
+        -- 2) Input 8 is the first factorial value that exceeds the signed 16-bit range
+        --    (8! = 40320), so the expected fail-safe output is 0.
+        -- Robin Changes End.
         rst <= '1';
         wait_n_rising_edges(clk, 2);
         rst <= '0';
 
         drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
 
-        wait_n_rising_edges(clk, 120);
+        wait_n_rising_edges(clk, 220);
 
-        assert out_port = x"0078"
-            report "FactorialTestOverflow failed: expected out_port = 120 (0x0078) for input 5 with the current memory image."
+        assert out_port = x"0000"
+            report "FactorialTestOverflow failed: expected out_port = 0x0000 after factorial overflow on input 8."
             severity failure;
 
         assert false report "FactorialTestOverflow passed." severity note;

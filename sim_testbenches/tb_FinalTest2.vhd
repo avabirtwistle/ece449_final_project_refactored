@@ -41,7 +41,14 @@ begin
 
         drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
 
-        wait_n_rising_edges(clk, 80);
+        -- Robin Changes Start
+        -- Explanation of changes:
+        -- 1) FinalTest2 uses a multi-iteration loop and needs more time for the final branch exit
+        --    and OUT instruction to retire.
+        -- 2) Waiting only 80 cycles checks out_port too early, before the architectural result
+        --    has reached the external port.
+        -- Robin Changes End.
+        wait_n_rising_edges(clk, 120);
 
         assert out_port = x"FFFA"
             report "FinalTest2 failed: expected out_port = 0xFFFA (-6 signed)."

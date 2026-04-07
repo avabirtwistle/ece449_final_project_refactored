@@ -65,8 +65,15 @@ begin
        MESSAGE_CONTROL => 0,            --  enables the dynamic message reporting such as collision warnings when 1
        READ_DATA_WIDTH_A => 16,         -- the size of chunks that you can read from memory at a time (port B)
        READ_DATA_WIDTH_B => 16,         -- the size of chunks that you can read from memory at a time (port A)
-       READ_LATENCY_A => 1,             -- number of pipeline registers between the memory and port
-       READ_LATENCY_B => 1,             -- number of pipeline regiwsters betweent the memory and port
+       -- Robin Changes Start
+       -- Explanation of changes:
+       -- 1) Make RAM reads combinational at the memory stage outputs.
+       -- 2) The CPU already has a separate MEM/WB pipeline register in top_level.vhd.
+       -- 3) With READ_LATENCY_A/B = 1, the RAM data updated on the same edge MEM/WB sampled it,
+       --    so LOAD instructions captured 0000 instead of the addressed word.
+       -- Robin Changes End.
+       READ_LATENCY_A => 0,             -- number of pipeline registers between the memory and port
+       READ_LATENCY_B => 0,             -- number of pipeline regiwsters betweent the memory and port
        READ_RESET_VALUE_A => "0",       -- resets the port A to all 0
        READ_RESET_VALUE_B => "0",       -- resets the port b to all 0
        RST_MODE_A => "SYNC",            -- synchronous reset
@@ -95,8 +102,8 @@ begin
        enb => enb,       -- 1-bit input: Memory enable signal for port B. Must be high on clock cycles when read
                          -- or write operations are initiated. Pipelined internally.
     
-       regcea => '1', -- 1-bit input: Clock Enable for the last register stage on the output data path.
-       regceb => '1', -- 1-bit input: Do not change from the provided value.
+       regcea => '0', -- 1-bit input: Clock Enable for the last register stage on the output data path.
+       regceb => '0', -- 1-bit input: Do not change from the provided value.
        rsta => rst,     -- 1-bit input: Reset signal for the final port A output register stage. Synchronously
                          -- resets output port douta to the value specified by parameter READ_RESET_VALUE_A.
     
