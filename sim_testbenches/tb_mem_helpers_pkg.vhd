@@ -14,7 +14,7 @@ package tb_mem_helpers_pkg is
         signal clk     : in std_logic;
         signal in_port : out std_logic_vector(15 downto 0);
         constant vals  : in slv16_array_t;
-        constant fill_cycles : in natural := 3
+        constant fill_cycles : in natural := 4
     );
 end package;
 
@@ -33,7 +33,7 @@ package body tb_mem_helpers_pkg is
         signal clk     : in std_logic;
         signal in_port : out std_logic_vector(15 downto 0);
         constant vals  : in slv16_array_t;
-        constant fill_cycles : in natural := 3
+        constant fill_cycles : in natural := 4
     ) is
     begin
         if vals'length = 0 then

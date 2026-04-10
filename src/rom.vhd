@@ -51,15 +51,7 @@ begin
         MEMORY_SIZE          => 8192, -- size in bits
         MESSAGE_CONTROL      => 0,
         READ_DATA_WIDTH_A    => 16,
-        -- Robin Changes Start
-        -- Explanation of changes:
-        -- 1) Make instruction ROM reads combinational at the fetch output.
-        -- 2) The CPU already has a separate IF/ID pipeline register in top_level.vhd.
-        -- 3) With READ_LATENCY_A = 1, the ROM output updated on the same edge that IF/ID
-        --    sampled it, causing the previous instruction to be captured again and shifting
-        --    the whole program stream.
-        -- Robin Changes End.
-        READ_LATENCY_A       => 0,
+        READ_LATENCY_A       => 1,
         READ_RESET_VALUE_A   => "0",
         SIM_ASSERT_CHK       => 0,
         USE_MEM_INIT         => 1,
@@ -71,7 +63,7 @@ begin
         ena            => ena,
         injectdbiterra => '0',
         injectsbiterra => '0',
-        regcea         => '0',
+        regcea         => '1',
         rsta           => rst,
         sleep          => '0',
         douta          => douta,

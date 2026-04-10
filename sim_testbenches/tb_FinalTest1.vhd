@@ -39,13 +39,7 @@ begin
 
         drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
 
-        -- Robin Changes Start
-        -- Explanation of changes:
-        -- 1) FinalTest1 contains a longer counted loop than the earlier Format B tests.
-        -- 2) Waiting only 80 cycles checked out_port before the final branch exit and OUT retired.
-        -- 3) Extend the observation window so the architectural result reaches the external port.
-        -- Robin Changes End.
-        wait_n_rising_edges(clk, 120);
+        wait_n_rising_edges(clk, 80);
 
         assert out_port = x"00BF"
             report "FinalTest1 failed: expected out_port = 191 (0x00BF)."

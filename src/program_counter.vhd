@@ -16,9 +16,9 @@
 -- Additional Comments:
 -- For the case switch in the process, we need to increment the current value of the program counter by 2
 -- the current value of the program counter is access externally on the out_pc port. Since this is an output port
--- we cannot read from it directly, increment it by 2 and then output this new value as we would essentially be using the
--- output port as an input which is not allowed. To get around this, we can use an internal signal (pc_curr) to grab the current value
--- so we can increment it
+-- we cannot read from it directly, increment it by 2 and then output this new value as we would essentially be using the 
+-- output port as an input which is not allowed. To get around this, we can use an internal signal (pc_curr) to grab the current value 
+-- so we can increment it 
 
 ----------------------------------------------------------------------------------
 
@@ -38,20 +38,10 @@ use work.constants_package.all;
 --use UNISIM.VComponents.all;
 
 entity program_counter is
-Port (
+Port ( 
     clk: in std_logic;
     reset: in std_logic;
-
-    -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) Added ena so the PC can be frozen during a pipeline stall.
-    -- 2) When ena = '0', the PC simply holds its current value.
-    -- Robin Changes End.
-    -- mode: in std_logic_vector(1 downto 0);
-    -- ena should be not needed since the PC_STALL mode will handle stalling, but it is added here for readability and to be safe
-
     mode: in std_logic_vector(1 downto 0);
-
     in_pc: in std_logic_vector(15 downto 0); -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
 
     out_pc: out std_logic_vector(15 downto 0) -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM

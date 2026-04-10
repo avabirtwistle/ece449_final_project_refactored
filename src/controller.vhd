@@ -14,7 +14,6 @@ entity controller is
         -- Status flags from ALU
         flag_zero   : in  std_logic;
         flag_neg    : in  std_logic;
-        flag_overflow : in std_logic;
 
         -- Boot mode
         -- '0' = Reset & Execute (PC -> 0x0000)
@@ -260,22 +259,7 @@ begin
                     else
                         pc_mode <= PC_INCREMENT;
                     end if;
-
-                when OP_BRR_V =>                      -- Branch relative if signed multiply overflow
-                    mode_ALU  <= ALU_NOP;
-                    src_ALU   <= '0';
-                    wr_en_MEM <= '0';
-                    wr_en_REG <= '0';
-                    sel_WB    <= WB_ALU;
-                    in_p_EN   <= '0';
-                    out_p_EN  <= '0';
-                    pc_src    <= flag_overflow;
-                    if flag_overflow = '1' then
-                        pc_mode <= PC_LOAD_NEW_VAL;
-                    else
-                        pc_mode <= PC_INCREMENT;
-                    end if;
-
+                    
                 when OP_BR_SUB =>                     -- Branch to subroutine: PC = Ra, save PC+2 to link reg
                     mode_ALU  <= ALU_NOP;
                     src_ALU   <= '0';
@@ -310,4 +294,5 @@ begin
             end case;
         end if;      
     end process;
+    rom_enable <= '1' when reset = '0' else '0';
 end behavioral;

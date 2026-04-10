@@ -10,7 +10,7 @@
 -- Tool Versions:
 -- Description:
 --
--- Dependencies: program_counter.vhd, rom.vhd, constants_package.vhd
+-- Dependencies: program_counter.vhd, rom.vhd, constant_package.vhd
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -27,16 +27,7 @@ entity fetch is
     port(
         clk     : in  std_logic;
         reset   : in  std_logic;
-
-        -- Robin Changes Start
-        -- Explanation of changes:
-        -- 1) Added pc_en so the top level can freeze the program counter during a pipeline stall.
-        -- 2) The ROM can still remain enabled independently through rom_ena, but the PC itself now has its own hold control.
-        -- Robin Changes End.
-        -- rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
-        pc_en    : in  std_logic;
         rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
-
         mode   : in  std_logic_vector(1 downto 0); -- selects the mode for the program counter (increment, loading immediate value, etc.)
         in_pc   : in  std_logic_vector(15 downto 0); -- the immediate value to load into the program counter when mode is PC_IM_VALUE
 
@@ -46,7 +37,7 @@ entity fetch is
     );
 end fetch;
 
-architecture Behavioral of fetch is
+architecture Behavioral of fetch is 
     -- internal signal to connect the program counter output to the ROM address input
     signal pc_sig_internal : std_logic_vector(15 downto 0);
     signal instruction_sig_internal : std_logic_vector(15 downto 0);
@@ -54,18 +45,10 @@ begin
 
     -- instantiate the program counter and connect the ports appropriately
     program_counter: entity work.program_counter
-        port map (
+        port map ( 
             clk => clk,
             reset => reset,
-
-            -- Robin Changes Start
-            -- Explanation of changes:
-            -- 1) Pass the new fetch-stage PC enable signal down into the program counter.
-            -- Robin Changes End.
-            -- mode => mode,
-            ena => pc_en,
             mode => mode,
-
             out_pc => pc_sig_internal, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
             in_pc => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
         );
@@ -82,5 +65,4 @@ begin
 
     pc <= pc_sig_internal; -- connect the internal signal to the output port to pass the current value of the program counter to the IF/ID pipeline register
     instruction <= instruction_sig_internal; -- connect the internal signal to the output port to pass the fetched instruction to the IF/ID pipeline register
-
 end Behavioral;

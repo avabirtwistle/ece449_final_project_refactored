@@ -22,7 +22,6 @@ entity decode is
         -- flags / mode into controller
         flag_zero     : in  std_logic;
         flag_neg      : in  std_logic;
-        flag_overflow : in  std_logic;
         boot_mode     : in  std_logic;
 
         -- outputs to ID/EX
@@ -45,15 +44,8 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
+        pc_reset: out std_logic;
         rom_enable: out std_logic
-        pc_reset      : out std_logic;
-
-        -- 1) Export the decoded source register indexes so top level can do hazard detection.
-        -- 2) Export "used" flags so we only stall on real read-after-write hazards.
-        src1_reg      : out std_logic_vector(2 downto 0);
-        src2_reg      : out std_logic_vector(2 downto 0);
-        src1_used     : out std_logic;
-        src2_used     : out std_logic
     );
 end decode;
 
@@ -65,10 +57,8 @@ architecture Behavioral of decode is
     signal rd_data1_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
     signal rd_data2_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
     signal pc_mode_internal          : std_logic_vector(1 downto 0); -- we need to read this in a process and also output the mode to fetch
-    signal disp                  : signed(15 downto 0);
+    signal disp: signed(15 downto 0);
     signal pc_plus2_internal         : std_logic_vector(15 downto 0);
-    signal rd_data2_internal     : std_logic_vector(15 downto 0); -- needed for output and branch calculation
-    signal shift_amt_internal    : std_logic_vector(3 downto 0);
 begin
 
         u_decoder : entity work.decoder
@@ -78,7 +68,7 @@ begin
                 destination_reg => dest_reg, -- index for register a, sent to the register file
                 source_1 => source_1_internal, -- index for register b, sent to the register file
                 source_2 => source_2_internal, -- index for register c, sent to the register file
-                shift_amt => shift_amt_internal, -- the amount to shift
+                shift_amt => shift_amt, -- the amount to shift
                 disp => disp
             );
 
@@ -101,7 +91,6 @@ begin
                 opcode    => opcode_internal,
                 flag_zero => flag_zero,
                 flag_neg  => flag_neg,
-                flag_overflow => flag_overflow,
                 boot_mode => boot_mode,
                 mode_ALU  => alu_mode,
                 src_ALU   => alu_src,
@@ -110,12 +99,9 @@ begin
                 sel_WB    => sel_WB,
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
-<<<<<<< HEAD
                 pc_mode => pc_mode_internal,
                 pc_reset => pc_reset,
                 rom_enable => rom_enable
-
-                
             );
     -- send the internal signals to the output ports
     rd_data1 <= rd_data1_internal;
@@ -123,52 +109,9 @@ begin
     pc_mode <= pc_mode_internal; 
     pc_plus2_out <= pc_plus2_in;
     pc_plus2_internal <= pc_plus2_in;
-        -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) Expose the decoded source register indexes to top level for hazard detection.
-    -- Robin Changes End.
-    src1_reg      <= source_1_internal;
-    src2_reg      <= source_2_internal;
-
-
- -- Explanation of changes:
-    -- 1) Tell top level which source operands are actually used by the current IF/ID instruction.
-    -- 2) This avoids false stalls on instructions that do not read one or both source registers.
-    -- Robin Changes End.
-    process(opcode_internal)
-    begin
-        src1_used <= '0';
-        src2_used <= '0';
-
-        case opcode_internal is
-            when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>
-                src1_used <= '1';
-                src2_used <= '1';
-
-            when OP_LOAD | OP_MOV | OP_LOADIMM =>
-                src1_used <= '1';
-
-            when OP_STORE =>
-                src1_used <= '1';
-                src2_used <= '1';
-
-            when OP_SHL | OP_SHR | OP_TEST =>
-                src1_used <= '1';
-
-            when OP_OUT =>
-                src2_used <= '1';
-
-            when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB | OP_RETURN =>
-                src1_used <= '1';
-
-            when others =>
-                null;
-        end case;
-    end process;
-
     -- TODO check if the process list is necessry
     -- this process updates the branch_target which is the value the program counter will load from when the 
-    -- pc_mode is set to PC_LOAD_NW_VALUE. When the pc loads values due to reset, this is handled directly within the 
+    -- pc_mode is set to PC_LOAD_NEW_VALUE. When the pc loads values due to reset, this is handled directly within the 
     -- program counter logic (i.e. the "branch_target" needed for a reset should not be specified here)
     -- the pc will decide what to load for reset based on the control signals pc_reset and pc_boot_mode
     process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
@@ -179,8 +122,8 @@ begin
         -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
         if pc_mode_internal = PC_LOAD_NEW_VAL then
             case opcode_internal is
-                when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V  =>
-                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp - 2);
+                when OP_BRR | OP_BRR_N | OP_BRR_Z =>
+                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp);
     
                 when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
                     branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
@@ -188,142 +131,6 @@ begin
                 when OP_RETURN =>
                     branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
     
-                when OP_LOADIMM =>
-                if instruction(8) = '0' then
-                    imm <= rd_data1_internal(15 downto 8) & instruction(7 downto 0);
-                else
-                    imm <= instruction(7 downto 0) & rd_data1_internal(7 downto 0);
-                end if;
-                
-=======
-                -- pc_src    => open,
-
-                -- Robin Changes Start
-                -- Explanation of changes:
-                -- 1) Bring the controller's branch decision out of decode.
-                -- 2) Top level will use this to flush IF/ID on a taken branch.
-                -- Robin Changes End.
-                pc_src    => branch_taken_internal,
-                pc_mode   => pc_mode_internal,
-                pc_reset  => pc_reset
-            );
-
-    -- send the internal signals to the output ports
-    rd_data1      <= rd_data1_internal;
-    rd_data2      <= rd_data2_internal;
-    pc_mode       <= pc_mode_internal;
-    pc_plus2_out  <= pc_plus2_in;
-    pc_plus2_internal <= pc_plus2_in;
-    shift_amt     <= shift_amt_internal;
-    branch_taken  <= branch_taken_internal;
-
-    -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) Expose the decoded source register indexes to top level for hazard detection.
-    -- Robin Changes End.
-    src1_reg      <= source_1_internal;
-    src2_reg      <= source_2_internal;
-
-    -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) Tell top level which source operands are actually used by the current IF/ID instruction.
-    -- 2) This avoids false stalls on instructions that do not read one or both source registers.
-    -- Robin Changes End.
-    process(opcode_internal)
-    begin
-        src1_used <= '0';
-        src2_used <= '0';
-
-        case opcode_internal is
-            when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>
-                src1_used <= '1';
-                src2_used <= '1';
-
-            when OP_LOAD | OP_MOV | OP_LOADIMM =>
-                src1_used <= '1';
-
-            when OP_STORE =>
-                src1_used <= '1';
-                src2_used <= '1';
-
-            when OP_SHL | OP_SHR | OP_TEST =>
-                src1_used <= '1';
-
-            when OP_OUT =>
-                src2_used <= '1';
-
-            when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB | OP_RETURN =>
-                src1_used <= '1';
-
-            when others =>
-                null;
-        end case;
-    end process;
-
-    -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) imm is now generated properly instead of being hardwired to zero.
-    -- 2) SHL/SHR use the shift amount as the low 4 bits of imm.
-    -- 3) Branch opcodes expose the sign-extended displacement on imm for debug/consistency.
-    -- 4) branch_target is only generated when the branch is actually being taken.
-    -- 5) rd_data1_internal is included in the process sensitivity.
-    -- Robin Changes End.
-    process(instruction, opcode_internal, disp, pc_plus2_internal, pc_mode_internal, rd_data1_internal, shift_amt_internal, branch_taken_internal)
-    begin
-        imm           <= (others => '0');
-        branch_target <= (others => '0');
-
-        case opcode_internal is
-            when OP_SHL | OP_SHR =>
-                imm(3 downto 0) <= shift_amt_internal;
-
-            when OP_LOAD | OP_STORE | OP_MOV =>
-                imm <= (others => '0');
-
-            when OP_LOADIMM =>
-                -- Robin Changes Start
-                -- Explanation of changes:
-                -- 1) LOADIMM updates R7 in two steps:
-                --    bit 8 = 0 writes the low byte, bit 8 = 1 writes the high byte.
-                -- 2) Keep the untouched byte from the current R7 value so
-                --    LOADIMM.LOWER / LOADIMM.UPPER can be composed back-to-back.
-                -- Robin Changes End.
-                if instruction(8) = '0' then
-                    imm <= rd_data1_internal(15 downto 8) & instruction(7 downto 0);
-                else
-                    imm <= instruction(7 downto 0) & rd_data1_internal(7 downto 0);
-                end if;
-
-            when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V |
-                 OP_BR  | OP_BR_N  | OP_BR_Z  | OP_BR_SUB =>
-                imm <= std_logic_vector(disp);
-
-            when others =>
-                null;
-        end case;
-
-        -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
-        if branch_taken_internal = '1' and pc_mode_internal = PC_LOAD_LINK then
-            case opcode_internal is
-                when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V =>
-                    -- Robin Changes Start
-                    -- Explanation of changes:
-                    -- 1) BRR-family displacements in this ISA are relative to the current instruction
-                    --    address, not PC+2.
-                    -- 2) decode only receives pc_plus2_in, so convert back to the current instruction
-                    --    address by subtracting 2 before adding the shifted displacement.
-                    -- 3) This fixes FormatBTest2 loop control:
-                    --    BRR 0 stays on itself, BRR.z 2 reaches RETURN, and BRR -5 jumps back to ADD.
-                    -- Robin Changes End.
-                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp - 2);
-
-                when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
-                    branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
-
-                when OP_RETURN =>
-                    branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
-
->>>>>>> passed
                 when others =>
                     null;
             end case;

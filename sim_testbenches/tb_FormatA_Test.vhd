@@ -40,14 +40,7 @@ begin
         wait_n_rising_edges(clk, 2);
         rst <= '0';
 
-        -- Robin Changes Start
-        -- Explanation of changes:
-        -- 1) IN data is latched early in this pipeline path, not all the way at WB.
-        -- 2) Holding the first input for 4 cycles causes both back-to-back IN instructions
-        --    to sample the first value, which makes FormatA compute 72 instead of 96.
-        -- 3) Using 3 fill cycles lines the second IN up with the second stimulus value.
-        -- Robin Changes End.
-        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 3);
+        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
 
         wait_n_rising_edges(clk, 30);
 

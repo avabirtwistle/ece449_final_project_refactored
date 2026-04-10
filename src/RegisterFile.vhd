@@ -81,18 +81,8 @@ begin
             array_next(to_integer(unsigned(w_addr))) <= w_data;
         end if;
      end process;
-
-     -- Robin Changes Start
-     -- Explanation of changes:
-     -- 1) Added write-through behavior on the read ports.
-     -- 2) When decode reads the same register that WB is writing in the current cycle,
-     --    the read ports now return w_data immediately instead of the stale array_reg value.
-     -- 3) This fixes the remaining RAW hazard where a consumer still captured the old operand
-     --    even after stalling until the producer reached MEM/WB.
-     -- Robin Changes End.
-     -- r_data0 <= array_reg(to_integer(unsigned(r_addr0)));
-     -- r_data1 <= array_reg(to_integer(unsigned(r_addr1)));
-     r_data0 <= w_data when (wr_en = '1' and w_addr = r_addr0) else array_reg(to_integer(unsigned(r_addr0)));
-     r_data1 <= w_data when (wr_en = '1' and w_addr = r_addr1) else array_reg(to_integer(unsigned(r_addr1)));
+     
+        r_data0 <= array_reg(to_integer(unsigned(r_addr0)));
+        r_data1 <= array_reg(to_integer(unsigned(r_addr1)));
      
 end rtl;

@@ -21,9 +21,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-library work;
-use work.constant_package.all;
-
 entity writeback is
     Port (
         alu_result   : in  std_logic_vector(15 downto 0);
@@ -60,12 +57,9 @@ begin
             d_out       => mux_out
         );
 
-    -- Robin Changes Start
-    -- Explanation of changes:
-    -- 1) The auxiliary ridealong path now serves both IN and LOADIMM.
-    -- 2) IN uses in_p_EN, while LOADIMM selects WB_AUX.
-    -- Robin Changes End.
-    wb_data <= in_data when (in_p_EN = '1' or wb_src = WB_AUX) else mux_out;
+    -- Final writeback data:
+    -- normal WB mux result, unless this is an IN instruction
+    wb_data <= in_data when in_p_EN = '1' else mux_out;
 
     -- Pass through register file control info
     wb_dest_reg  <= dest_reg;

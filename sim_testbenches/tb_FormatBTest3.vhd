@@ -39,13 +39,7 @@ begin
         wait_n_rising_edges(clk, 2);
         rst <= '0';
 
-        -- Robin Changes Start
-        -- Explanation of changes:
-        -- 1) Match the current fetch/decode timing used by the fixed pipeline path.
-        -- 2) FormatBTest3 needs the first input held for 3 rising edges, same as the
-        --    other working Format B benches in this repo.
-        -- Robin Changes End.
-        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 3);
+        drive_in_sequence_after_pipeline_fill(clk, in_port, INPUTS, 4);
 
         wait_n_rising_edges(clk, 20);
 
