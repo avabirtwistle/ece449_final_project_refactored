@@ -159,7 +159,6 @@ begin
             imm           <= (others => '0'); 
             branch_target <= (others => '0'); -- this is fed to the fetch stage as the value the PC should load
 
-
          -- *****Controller Signaled Operation Requires Load PC with New Value*****
         if pc_mode_internal = PC_LOAD_NEW_VAL then
             -- check the opcode to determine what value to load into the PC for the branch target
@@ -177,6 +176,15 @@ begin
                     null;
             end case;
         end if;
-    end process;
+
+        -- ** Controller Signaled Operation Requires Building Immediate Value**
+        if opcode_internal = OP_LOADIMM then
+            if instruction(8) = '0' then
+                imm <= rd_data1_internal(15 downto 8) & instruction(7 downto 0); -- keep upper byte, load immediate into lower byte
+            else
+                imm <= instruction(7 downto 0) & rd_data1_internal(7 downto 0); -- load immediate into upper byte, keep lower byte
+            end if;
+        end if;
+end process;
 
 end Behavioral;
