@@ -35,10 +35,10 @@ use ieee.numeric_std.all;
 entity register_file is
   Port (
         clk, reset, wr_en: in std_logic;
-        w_addr: in std_logic_vector(2 downto 0);
-        w_data: in std_logic_vector(15 downto 0);
-        r_addr0, r_addr1: in std_logic_vector(2 downto 0);
-        r_data0, r_data1: out std_logic_vector(15 downto 0)
+        w_addr: in std_logic_vector(2 downto 0); -- index for reg to write to
+        w_data: in std_logic_vector(15 downto 0); -- data to write
+        r_addr0, r_addr1: in std_logic_vector(2 downto 0); -- indices for regs to read from
+        r_data0, r_data1: out std_logic_vector(15 downto 0) -- outputs for data read from the register file
   );
 end register_file;
 
@@ -46,12 +46,12 @@ architecture rtl of register_file is
 
 type reg_file_type is array (7 downto 0) of std_logic_vector(15 downto 0);
 
-signal array_reg: reg_file_type;
-signal array_next: reg_file_type;
-signal en: std_logic_vector(7 downto 0);
+signal array_reg: reg_file_type; -- this signal represents the current state of the register file values, we will update this on the rising edge of the clock with the next state values stored in array_next
+signal array_next: reg_file_type; -- we need this signal to hold the next state of the register file values so we can update them all at once on the rising edge of the clock
+signal en: std_logic_vector(7 downto 0); -- we need this signal to determine which register to update on a write, we will set the bit corresponding to the index of the register we want to write to and set all other bits to 0, then we can use this signal to update the next state of the register file values in a combinational process
 
 begin
-    process(clk,reset)
+    process(clk,reset) -- process to update the state of the register file 
     begin
         if(reset = '1') then
             array_reg(0) <= (others => '0');
@@ -82,7 +82,8 @@ begin
         end if;
      end process;
      
-        r_data0 <= array_reg(to_integer(unsigned(r_addr0)));
-        r_data1 <= array_reg(to_integer(unsigned(r_addr1)));
-     
+     -- output the register values corresponding to read address
+     -- in case of RAW, the value to be written is forwarded to the output
+     r_data0 <= w_data when (wr_en = '1' and w_addr = r_addr0) else array_reg(to_integer(unsigned(r_addr0)));
+     r_data1 <= w_data when (wr_en = '1' and w_addr = r_addr1) else array_reg(to_integer(unsigned(r_addr1)));
 end rtl;
