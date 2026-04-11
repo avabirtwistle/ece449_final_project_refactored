@@ -32,7 +32,8 @@ entity Alu is
         control_sel : in  std_logic_vector(2 downto 0); -- selects the ALU operation
         Carry       : out std_logic; -- carry flag for addition and subtraction
         Zero        : out std_logic; -- zero flag for result of ALU operation
-        Negative    : out std_logic -- negative flag for result of ALU operation
+        Negative    : out std_logic; -- negative flag for result of ALU operation
+        Overflow    : out std_logic -- overflow flag for addition and subtraction
     );
 end Alu;
 
@@ -43,67 +44,68 @@ begin
         variable temp_result  : std_logic_vector(15 downto 0);
         variable temp_signed  : signed(15 downto 0);
         variable mult_result  : signed(31 downto 0);
-        variable shift_amt    : integer range 0 to 15;
-        variable add_ext      : unsigned(16 downto 0);
+        variable add_ext      : unsigned(16 downto 0); 
         variable sub_ext      : unsigned(16 downto 0);
     begin
         -- defaults
         temp_result := (others => '0');
         Carry       <= '0';
+        Overflow    <= '0';
+        Zero        <= '0';
+        Negative    <= '0';
 
         case control_sel is -- determines which operation to perform
 
-            -- 000 = NOP
+            -- NOP
             when "000" =>
                 temp_result := (others => '0');
                 Carry       <= '0';
 
-            -- 001 = ADD
             -- R[ra] <- R[rb] + R[rc]
             when "001" =>
                 add_ext := ('0' & unsigned(a)) + ('0' & unsigned(b));
                 temp_result := std_logic_vector(add_ext(15 downto 0));
                 Carry <= add_ext(16);
 
-            -- 010 = SUB
             -- R[ra] <- R[rb] - R[rc]
             when "010" =>
                 sub_ext := ('0' & unsigned(a)) - ('0' & unsigned(b));
                 temp_result := std_logic_vector(sub_ext(15 downto 0));
                 Carry <= sub_ext(16);
 
-            -- 011 = MUL
             -- R[ra] <- R[rb] x R[rc]
             when "011" =>
                 mult_result := signed(a) * signed(b);
                 temp_result := std_logic_vector(mult_result(15 downto 0));
                 Carry <= '0';
+                if mult_result > to_signed(32767, 32) or mult_result < to_signed(-32768, 32) then --  checks if the result exceeds the range of a 16-bit signed integer
+                    Overflow <= '1';
+                else
+                    Overflow <= '0';
+                end if;
 
-            -- 100 = NAND
+    
             -- R[ra] <- R[ra] NAND R[rb]
             when "100" =>
                 temp_result := not (a and b);
                 Carry <= '0';
 
-            -- 101 = SHL
             -- shift left A by n = low 4 bits of B
             when "101" =>
-                shift_amt := to_integer(unsigned(b(3 downto 0)));
-                if shift_amt = 0 then
+                if shift_amount = 0 then
                     temp_result := a;
                 else
-                    temp_result := std_logic_vector(shift_left(unsigned(a), shift_amt));
+                    temp_result := std_logic_vector(shift_left(unsigned(a), to_integer(shift_amount)));
                 end if;
                 Carry <= '0';
 
-            -- 110 = SHR
             -- logical shift right A by n = low 4 bits of B
             when "110" =>
-                shift_amt := to_integer(unsigned(b(3 downto 0)));
-                if shift_amt = 0 then
+                shift_amount := to_integer(unsigned(b(3 downto 0)));
+                if shift_amount = 0 then
                     temp_result := a;
                 else
-                    temp_result := std_logic_vector(shift_right(unsigned(a), shift_amt));
+                    temp_result := std_logic_vector(shift_right(unsigned(a), to_integer(shift_amount)));
                 end if;
                 Carry <= '0';
 

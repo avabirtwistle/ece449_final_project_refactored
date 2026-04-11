@@ -14,33 +14,27 @@ entity controller is
         -- Status flags from ALU
         flag_zero   : in  std_logic;
         flag_neg    : in  std_logic;
+        flag_overflow : in std_logic;
 
-        -- Boot mode
-        -- '0' = Reset & Execute (PC -> 0x0000)
-        -- '1' = Reset & Load    (PC -> 0x0002)
+        -- Boot mode, used for controlling program counter
         boot_mode   : in  std_logic;
 
         -- ALU Control Signals
         mode_ALU    : out std_logic_vector(2 downto 0);
-        src_ALU     : out std_logic;
+        src_ALU     : out std_logic; -- selects source for second operand for ALU
 
-        -- Memory Control Signals
-        wr_en_MEM   : out std_logic;
-
-        -- Write Back Control Signals
+        -- Write/ Memory control signals
         wr_en_REG   : out std_logic;
-        sel_WB      : out std_logic_vector(1 downto 0);
-
+        sel_WB      : out std_logic_vector(1 downto 0); 
+        wr_en_MEM   : out std_logic;
+        
         -- I/O Port Control Signals
         in_p_EN     : out std_logic;
         out_p_EN    : out std_logic;
 
         -- Branch / PC Control
-        pc_src      : out std_logic;
-        pc_mode       : out std_logic_vector(1 downto 0);
+        pc_mode       : out std_logic_vector(1 downto 0); -- controls what happens to program counter in fetch
         pc_reset : out std_logic;
-        
-        rom_enable: out std_logic
     );
 end controller;
 
@@ -57,17 +51,17 @@ begin
         sel_WB    <= WB_ALU;
         in_p_EN   <= '0';
         out_p_EN  <= '0';
-        pc_src    <= '0'; -- denotes if we will take a branch or not
         pc_mode <= PC_INCREMENT; -- the signal for selecting the program counter mode in the fetch module
         pc_reset <= '0'; -- for reseting the program counter in the fetch module
+
         if reset = '1' then
                 if boot_mode = '1' then -- reset and execute
                     pc_mode <= PC_BOOT_MODE; 
                 else
                     pc_mode <= PC_INCREMENT; -- reset and load, the program counter just needs pc_reset =1 and the pc_mode to not be PC_BOOT_MODE in order to recognize this state
                 end if;
-                pc_reset<='1'; -- output the reset is 1
-        else
+                pc_reset<='1'; -- output the reset is 1 for both cases
+        else -- no reset then check opcode to determine control signals for the instruction
             case opcode is
                 when OP_NOP =>
                     mode_ALU  <= ALU_NOP;
@@ -178,7 +172,8 @@ begin
                     out_p_EN  <= '0';
                     pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
-                    
+
+                -- branch relative
                 when OP_BRR =>                        -- Branch relative, unconditional: PC = PC + imm
                     mode_ALU  <= ALU_NOP;             -- target computed in decode (pc_plus2 + imm), ALU not needed
                     src_ALU   <= '0';
@@ -220,6 +215,22 @@ begin
                         pc_mode <= PC_INCREMENT;
                     end if;
 
+                
+                when OP_BRR_V =>                      -- Branch relative if signed multiply overflow
+                    mode_ALU  <= ALU_NOP;
+                    src_ALU   <= '0';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    if flag_overflow = '1' then
+                        pc_mode <= PC_LOAD_NEW_VAL;
+                    else
+                        pc_mode <= PC_INCREMENT;
+                    end if;
+
+                -- branch register
                 when OP_BR =>                         -- Branch to register, unconditional: PC = Ra
                     mode_ALU  <= ALU_NOP;             -- no ALU computation; target is register value
                     src_ALU   <= '0';
@@ -228,8 +239,8 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '1';                 -- always take branch
                     pc_mode <= PC_LOAD_NEW_VAL; 
+
                 when OP_BR_N =>                       -- Branch to register if negative: PC = Ra if flag_neg
                     mode_ALU  <= ALU_NOP;
                     src_ALU   <= '0';
@@ -238,8 +249,7 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= flag_neg;
-                    if flag_neg = '1' then 
+                    if flag_neg = '1' then  -- branch only when negative flag set
                         pc_mode <= PC_LOAD_NEW_VAL;
                     else
                         pc_mode <= PC_INCREMENT;
@@ -253,8 +263,7 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= flag_zero;
-                    if flag_zero = '1' then 
+                    if flag_zero = '1' then  -- branch only when zero flag set
                         pc_mode <= PC_LOAD_NEW_VAL;
                     else
                         pc_mode <= PC_INCREMENT;
@@ -268,7 +277,6 @@ begin
                     sel_WB    <= WB_PC2;              -- select PC+2 as write-back value
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '1';                 -- always take branch
                     pc_mode <= PC_LOAD_NEW_VAL;
 
                 when OP_RETURN =>                     -- Return from subroutine: PC = Ra (we need r7?) (link register) 
@@ -279,8 +287,52 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '1';                 -- load PC from link register
                     pc_mode <= PC_LOAD_NEW_VAL;
+
+                when OP_LOAD =>
+                    mode_ALU  <= ALU_ADD;
+                    src_ALU   <= '1';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_MEM;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode   <= PC_INCREMENT;
+
+                when OP_STORE =>
+                    mode_ALU  <= ALU_ADD;
+                    src_ALU   <= '1';
+                    wr_en_MEM <= '1';
+                    wr_en_REG <= '0';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode   <= PC_INCREMENT;
+
+                when OP_LOADIMM =>
+                        mode_ALU  <= ALU_NOP;
+                        src_ALU   <= '0';
+                        wr_en_MEM <= '0';
+                        wr_en_REG <= '1';
+                        sel_WB    <= WB_AUX;
+                        in_p_EN   <= '0';
+                        out_p_EN  <= '0';
+                        pc_src    <= '0';
+                        pc_mode   <= PC_INCREMENT;
+
+                when OP_MOV =>
+                    mode_ALU  <= ALU_ADD;
+                    src_ALU   <= '1';
+                    wr_en_MEM <= '0';
+                    wr_en_REG <= '1';
+                    sel_WB    <= WB_ALU;
+                    in_p_EN   <= '0';
+                    out_p_EN  <= '0';
+                    pc_src    <= '0';
+                    pc_mode   <= PC_INCREMENT;
+
                 when others =>
                     mode_ALU  <= ALU_NOP;
                     src_ALU   <= '0';
@@ -294,5 +346,4 @@ begin
             end case;
         end if;      
     end process;
-    rom_enable <= '1' when reset = '0' else '0';
 end behavioral;

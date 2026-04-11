@@ -14,21 +14,18 @@ package constants_package is
     constant ALU_SHR  : std_logic_vector(2 downto 0) := "110";
     constant ALU_TEST : std_logic_vector(2 downto 0) := "111";
 
+    --  modes for selecting the value to write back to the register file in the WB stage
     constant WB_ALU : std_logic_vector(1 downto 0) := "00";
     constant WB_MEM : std_logic_vector(1 downto 0) := "01";
     constant WB_PC2 : std_logic_vector(1 downto 0) := "10";
-
-    -- TODO: add more ALU operation modes as needed
-
-    -- TODO: add control signal constants
 
     -- program counter modes
     constant PC_INCREMENT : std_logic_vector(1 downto 0) := "00"; -- increment the PC by 2 to point to the next instruction
     constant PC_LOAD_NEW_VAL      : std_logic_vector(1 downto 0) := "01"; -- update the PC with an immediate value (for jumps and branches)
     constant PC_STALL           : std_logic_vector(1 downto 0) := "10"; -- hold the current value of the PC (no update)
-    constant PC_BOOT_MODE         : std_logic_vector(1 downto 0) := "11"; -- to be determined (for future use, if needed)
-    constant PC_RESET_AND_EXECUTE_VAL        : std_logic_vector(15 downto 0) := x"0000";
-    constant PC_RESET_AND_LOAD_VAL        : std_logic_vector(15 downto 0) := x"0002";
+    constant PC_BOOT_MODE         : std_logic_vector(1 downto 0) := "11"; -- when asserted with reset, then load mode reset vector is loaded
+    constant PC_RESET_AND_EXECUTE_VAL        : std_logic_vector(15 downto 0) := x"0000"; -- value loaded on program start, when reset is '1' and mode is not PC_BOOT_MODE
+    constant PC_RESET_AND_LOAD_VAL        : std_logic_vector(15 downto 0) := x"0002"; -- load mode reset vector
 
 
     -- The opcode values for the instruction types
@@ -58,7 +55,9 @@ package constants_package is
     constant OP_BR_Z     : std_logic_vector(6 downto 0) := "1000101"; -- 69, branch if not zero and not negative
     constant OP_BR_SUB   : std_logic_vector(6 downto 0) := "1000110"; -- 70, branch to subroutine (jump and link, save return address in r7)
     constant OP_RETURN   : std_logic_vector(6 downto 0) := "1000111"; -- 71, return from subroutine (jump to address in r7)
+    constant OP_BRR_V    : std_logic_vector(6 downto 0) := "1001000"; -- 72, branch relative if overflow
 
+    -- stack operations
     constant OP_PUSH     : std_logic_vector(6 downto 0) := "1100000"; -- 96, push the value in the specified register onto the stack (decrement stack pointer and store value at new top of stack)
     constant OP_POP      : std_logic_vector(6 downto 0) := "1100001"; -- 97, pop the value from the top of the stack into the specified register (load value from top of stack and increment stack pointer)
     constant OP_LOAD_SP  : std_logic_vector(6 downto 0) := "1100010"; -- 98, load the stack pointer with an immediate value (used for stack initialization, SP starts at top of memory and grows downwards so we can load it with the max memory address)
@@ -66,6 +65,5 @@ package constants_package is
 
     -- Link/return register
     constant LINK_REGISTER      : std_logic_vector(2 downto 0) := "111"; -- 7, return from interrupt (jump to address in r7 and restore r7 with value at top of stack, increment stack pointer)
-
 
 end package constants_package;
