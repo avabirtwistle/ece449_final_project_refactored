@@ -22,17 +22,18 @@ entity decode is
         -- flags / mode into controller
         flag_zero     : in  std_logic;
         flag_neg      : in  std_logic;
-        boot_mode     : in  std_logic;
+        flag_carry    : in  std_logic;
+        boot_mode     : in  std_logic; -- this is fed through the top level
 
-        -- outputs to ID/EX
-        rd_data1      : out std_logic_vector(15 downto 0);
-        rd_data2      : out std_logic_vector(15 downto 0);
-        imm           : out std_logic_vector(15 downto 0);
-        dest_reg      : out std_logic_vector(2 downto 0);
-        pc_plus2_out  : out std_logic_vector(15 downto 0);
-        shift_amt     : out std_logic_vector(3 downto 0); 
-
-        -- control outputs toward ID/EX
+        --*********** ID/EX  ***********
+        -- data outputs
+        rd_data1      : out std_logic_vector(15 downto 0); -- value read from RF for source 1
+        rd_data2      : out std_logic_vector(15 downto 0); -- value read from RF for source 2
+        imm           : out std_logic_vector(15 downto 0); -- immediate value
+        dest_reg      : out std_logic_vector(2 downto 0); -- the index of the register to write
+        pc_plus2_out  : out std_logic_vector(15 downto 0); 
+        shift_amt     : out std_logic_vector(3 downto 0); -- sent to ALU
+        -- control outputs
         alu_mode      : out std_logic_vector(2 downto 0);
         alu_src       : out std_logic;
         wr_en_MEM     : out std_logic;
@@ -45,7 +46,13 @@ entity decode is
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
         pc_reset: out std_logic;
-        rom_enable: out std_logic
+        rom_enable: out std_logic;
+
+        -- outputs for hazard detection
+        src1_reg      : out std_logic_vector(2 downto 0);
+        src2_reg      : out std_logic_vector(2 downto 0);
+        src1_used     : out std_logic; -- denotes if source 1 reg is used
+        src2_used     : out std_logic -- denotes if source 2 reg is used
     );
 end decode;
 
@@ -109,11 +116,44 @@ begin
     pc_mode <= pc_mode_internal; 
     pc_plus2_out <= pc_plus2_in;
     pc_plus2_internal <= pc_plus2_in;
-    -- TODO check if the process list is necessry
-    -- this process updates the branch_target which is the value the program counter will load from when the 
-    -- pc_mode is set to PC_LOAD_NEW_VALUE. When the pc loads values due to reset, this is handled directly within the 
-    -- program counter logic (i.e. the "branch_target" needed for a reset should not be specified here)
-    -- the pc will decide what to load for reset based on the control signals pc_reset and pc_boot_mode
+    shift_amt     <= shift_amt_internal;
+
+    -- allow top level to monitor which source registers are being used for hazard detection
+    src1_reg      <= source_1_internal;
+    src2_reg      <= source_2_internal;
+ 
+    -- process to determine source registers are used for hazard detection
+    process(opcode_internal)
+    begin
+        src1_used <= '0';
+        src2_used <= '0';
+
+        case opcode_internal is
+            when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>
+                src1_used <= '1';
+                src2_used <= '1';
+
+            when OP_LOAD | OP_MOV | OP_LOADIMM =>
+                src1_used <= '1';
+
+            when OP_STORE =>
+                src1_used <= '1';
+                src2_used <= '1';
+
+            when OP_SHL | OP_SHR | OP_TEST =>
+                src1_used <= '1';
+
+            when OP_OUT =>
+                src2_used <= '1';
+
+            when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB | OP_RETURN =>
+                src1_used <= '1';
+
+            when others =>
+                null;
+        end case;
+    end process;
+
     process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
     begin
             imm           <= (others => '0'); -- TODO figure out what this is supposed to do... does it require reg read ?
