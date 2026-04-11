@@ -156,20 +156,22 @@ begin
 
     process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
     begin
-            imm           <= (others => '0'); -- TODO figure out what this is supposed to do... does it require reg read ?
-            branch_target <= (others => '0'); 
+            imm           <= (others => '0'); 
+            branch_target <= (others => '0'); -- this is fed to the fetch stage as the value the PC should load
 
-        -- only bother updating when we actually take the branch, other wise the branch target should be 0 for clarity since the pc ignore this
+
+         -- *****Controller Signaled Operation Requires Load PC with New Value*****
         if pc_mode_internal = PC_LOAD_NEW_VAL then
+            -- check the opcode to determine what value to load into the PC for the branch target
             case opcode_internal is
-                when OP_BRR | OP_BRR_N | OP_BRR_Z =>
-                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp);
+                when OP_BRR | OP_BRR_N | OP_BRR_Z | OP_BRR_V =>
+                    branch_target <= std_logic_vector(signed(pc_plus2_internal) + disp - 2); -- for relative branches, the target is the current PC + the sign-extended and shifted immediate value (subtract 2)
     
                 when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB =>
-                    branch_target <= std_logic_vector(signed(rd_data1_internal) + disp);
+                    branch_target <= std_logic_vector(signed(rd_data1_internal) + disp); -- for register-indirect branches, the target is the value read from the source register + the sign-extended and shifted immediate value
     
                 when OP_RETURN =>
-                    branch_target <= rd_data1_internal; -- whatever was inside the link register is the branch target
+                    branch_target <= rd_data1_internal; -- rd_data1 has value read from link. register
     
                 when others =>
                     null;
