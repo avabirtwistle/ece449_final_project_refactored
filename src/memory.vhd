@@ -22,18 +22,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
-
 library work;
-use work.constant_package.all;
+use work.constants_package.all;
 
 entity memory is
     port(
@@ -102,9 +92,7 @@ begin
     -- Write memory when store is enabled and the address is in RAM
     ram_write_en <= '1' when (wr_en_MEM = '1' and ram_addr_hit = '1') else '0';
 
-    --------------------------------------------------------------------
-    -- RAM interface
-    --------------------------------------------------------------------
+    -- instantiate the ram
     u_ram : entity work.ram
         port map(
             clk   => clk,
@@ -127,10 +115,7 @@ begin
     ram_enb   <= '0';
     ram_addrb <= (others => '0');
 
-    --------------------------------------------------------------------
-    -- OUT port logic
     -- update external output on OUT instruction or mapped write to 0xFFF2
-    --------------------------------------------------------------------
     process(clk, rst)
     begin
         if rst = '1' then
@@ -144,9 +129,7 @@ begin
 
     out_port <= out_port_reg;
 
-    --------------------------------------------------------------------
-    -- Outputs to MEM/WB
-    --------------------------------------------------------------------
+    -- output to the MEM/WB pipeline register
     alu_result_out <= alu_result;
     mem_data_out   <= ram_douta when ram_read_en = '1' else (others => '0');
     dest_reg_out   <= dest_reg;
