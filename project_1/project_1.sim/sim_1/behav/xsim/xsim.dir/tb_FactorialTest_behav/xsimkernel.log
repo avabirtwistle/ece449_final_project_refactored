@@ -1,0 +1,4 @@
+Running: xsim.dir/tb_FactorialTest_behav/xsimk -simmode gui -wdb tb_FactorialTest_behav.wdb -simrunnum 0 -socket 46827
+Design successfully loaded
+Design Loading Memory Usage: 180868 KB (Peak: 180916 KB)
+Design Loading CPU Usage: 2800 ms

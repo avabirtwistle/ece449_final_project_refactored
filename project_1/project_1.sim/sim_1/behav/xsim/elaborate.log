@@ -1,0 +1,39 @@
+Vivado Simulator v2024.2.0
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /tools/Xilinx/Vivado/2024.2/bin/unwrapped/lnx64.o/xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L secureip -L xpm --snapshot tb_FactorialTest_behav xil_defaultlib.tb_FactorialTest -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package xil_defaultlib.tb_mem_helpers_pkg
+Compiling package xil_defaultlib.constants_package
+Compiling package xil_defaultlib.pipeline_registers
+Compiling package xpm.vcomponents
+Compiling package vl.vl_types
+Compiling architecture behavioral of entity xil_defaultlib.program_counter [program_counter_default]
+Compiling module xpm.xpm_memory_base(MEMORY_TYPE=3,ME...
+Compiling module xpm.xpm_memory_sprom(MEMORY_SIZE=819...
+Compiling architecture behavioral of entity xil_defaultlib.rom [rom_default]
+Compiling architecture behavioral of entity xil_defaultlib.fetch [fetch_default]
+Compiling architecture behavioral of entity xil_defaultlib.decoder [decoder_default]
+Compiling architecture rtl of entity xil_defaultlib.register_file [register_file_default]
+Compiling architecture behavioral of entity xil_defaultlib.controller [controller_default]
+Compiling architecture behavioral of entity xil_defaultlib.decode [decode_default]
+Compiling architecture behavioural of entity xil_defaultlib.Alu [alu_default]
+Compiling architecture behavioral of entity xil_defaultlib.execute [execute_default]
+Compiling module xpm.xpm_memory_base(MEMORY_SIZE=8192...
+Compiling module xpm.xpm_memory_dpdistram(MEMORY_SIZE...
+Compiling architecture behavioral of entity xil_defaultlib.ram [ram_default]
+Compiling architecture behavioral of entity xil_defaultlib.memory [memory_default]
+Compiling architecture behavioral of entity xil_defaultlib.MUX [mux_default]
+Compiling architecture behavioral of entity xil_defaultlib.writeback [writeback_default]
+Compiling architecture behavioral of entity xil_defaultlib.top_level_cpu [top_level_cpu_default]
+Compiling architecture sim of entity xil_defaultlib.tb_factorialtest
+Built simulation snapshot tb_FactorialTest_behav

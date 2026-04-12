@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "8" -L "xil_defaultlib" -L "secureip" -L "xpm" --snapshot "top_level_cpu_behav" "xil_defaultlib.top_level_cpu" -log "elaborate.log" 
