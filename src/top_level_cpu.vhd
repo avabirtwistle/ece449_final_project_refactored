@@ -131,9 +131,12 @@ begin
             wb_dest   => write_back_dest,
             wb_data   => write_back_data,
     
-            -- flags / mode into controller
+            -- Map flags generated in execute stage into the decode stage for use by controller
             flag_zero   => exec_flag_zero,
             flag_neg    => exec_flag_neg,
+            flag_carry  => exec_flag_carry,
+            
+            -- boot mode signal from top level mapped
             boot_mode   => boot_mode,
     
             -- outputs to ID/EX
@@ -216,8 +219,8 @@ begin
         in_p_EN       => ID_EX_reg.in_p_EN,
         out_p_EN      => ID_EX_reg.out_p_EN,
         shift_amount      => ID_EX_reg.shift_amt,
+        
 --------------OUTPUTS to ex/mem---------------------------------
-
         alu_result        => exec_alu_result,
         rd_data2_out      => exec_rd_data2,
         dest_reg_out      => exec_dest_reg,
