@@ -201,7 +201,7 @@ begin
                 IF_ID_reg.pc_plus2    <= (others => '0');
             elsif if_id_en = '1' then
                 IF_ID_reg.instruction <= fetch_instruction;
-                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc) + 2);
+                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc));
             end if;
         end if;
     end process;

@@ -14,13 +14,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="924.850 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,001.151 ns"></ZoomEndTime>
-      <Cursor1Time time="940.950 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,000.001 ns"></ZoomEndTime>
+      <Cursor1Time time="38.570 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="124"></NameColumnWidth>
-      <ValueColumnWidth column_width="177"></ValueColumnWidth>
+      <ValueColumnWidth column_width="173"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="181" />
    <wvobject type="logic" fp_name="/tb_FactorialTest/clk">
@@ -604,6 +604,46 @@
          <obj_property name="ElementShortName">.in_data[15:0]</obj_property>
          <obj_property name="ObjectShortName">.in_data[15:0]</obj_property>
          <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.alu_result">
+         <obj_property name="ElementShortName">.alu_result[15:0]</obj_property>
+         <obj_property name="ObjectShortName">.alu_result[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.rd_data2">
+         <obj_property name="ElementShortName">.rd_data2[15:0]</obj_property>
+         <obj_property name="ObjectShortName">.rd_data2[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.dest_reg">
+         <obj_property name="ElementShortName">.dest_reg[2:0]</obj_property>
+         <obj_property name="ObjectShortName">.dest_reg[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.pc_plus2">
+         <obj_property name="ElementShortName">.pc_plus2[15:0]</obj_property>
+         <obj_property name="ObjectShortName">.pc_plus2[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.wr_en_MEM">
+         <obj_property name="ElementShortName">.wr_en_MEM</obj_property>
+         <obj_property name="ObjectShortName">.wr_en_MEM</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.reg_write">
+         <obj_property name="ElementShortName">.reg_write</obj_property>
+         <obj_property name="ObjectShortName">.reg_write</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.wb_src">
+         <obj_property name="ElementShortName">.wb_src[1:0]</obj_property>
+         <obj_property name="ObjectShortName">.wb_src[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.in_p_EN">
+         <obj_property name="ElementShortName">.in_p_EN</obj_property>
+         <obj_property name="ObjectShortName">.in_p_EN</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.out_p_EN">
+         <obj_property name="ElementShortName">.out_p_EN</obj_property>
+         <obj_property name="ObjectShortName">.out_p_EN</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_FactorialTest/uut/EX_MEM_reg.in_data">
+         <obj_property name="ElementShortName">.in_data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">.in_data[15:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject type="array" fp_name="/tb_FactorialTest/uut/MEM_WB_reg">
