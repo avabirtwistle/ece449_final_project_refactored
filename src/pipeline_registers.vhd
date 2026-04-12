@@ -18,8 +18,9 @@ package pipeline_registers is
         pc_plus2  : std_logic_vector(15 downto 0);
 
         alu_mode  : std_logic_vector(2 downto 0); -- selects mode of ALU
-        alu_src   : std_logic; -- decides saving to RAM or pass along // Are we sure? I think it should select whether its IMM or Rd_data2
-
+        alu_src   : std_logic; -- select whether its IMM or Rd_data2
+        shift_amt : std_logic_vector(3 downto 0); -- the amount the data is shifted
+        
         -- Memory control signals (riding along to MEM)
         wr_en_MEM : std_logic;
 
@@ -29,7 +30,7 @@ package pipeline_registers is
         in_p_EN   : std_logic;
         out_p_EN  : std_logic;
         in_data   : std_logic_vector(15 downto 0);
-        shift_amt : std_logic_vector(3 downto 0); 
+
     end record;
 
     type EX_MEM is record
