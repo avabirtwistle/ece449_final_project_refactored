@@ -92,27 +92,26 @@ begin
             a           => source_1_data_internal,
             b           => source_2_data_internal,
             result      => result_internal,
-            control_sel => alu_mode, -- direct conection
+            control_sel => alu_mode, -- direct connection
             Carry       => flag_carry_internal,
             Zero        => flag_zero_internal,
             Negative    => flag_negative_internal,
             Overflow    => flag_overflow_internal
         );
-
-    alu_result    <= result_internal;
+    -- output to the EX/MEM pipeline register
     rd_data2_out  <= rd_data2;     -- needed later for STORE instructions
-    dest_reg_out  <= dest_reg;
+    dest_reg_out  <= dest_reg; 
     pc_plus2_out  <= pc_plus2;
-
     wr_en_MEM_out <= wr_en_MEM;
     reg_write_out <= reg_write;
     wb_src_out    <= wb_src;
     in_p_EN_out   <= in_p_EN;
     out_p_EN_out  <= out_p_EN;
 
-    -- map the internal signals to the outputs for flags
+    -- map the internal signals set by the ALU to the outputs accessible in top level
     flag_zero_out     <= flag_zero_internal;
     flag_negative_out <= flag_negative_internal;
     flag_carry_out    <= flag_carry_internal;
     flag_overflow_out <= flag_overflow_internal;
+    alu_result    <= result_internal;
 end Behavioral;
