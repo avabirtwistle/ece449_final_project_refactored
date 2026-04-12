@@ -34,7 +34,7 @@ entity controller is
 
         -- Branch / PC Control
         pc_mode       : out std_logic_vector(1 downto 0); -- controls what happens to program counter in fetch
-        pc_reset : out std_logic;
+        pc_reset : out std_logic
     );
 end controller;
 
@@ -71,7 +71,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
 
                 when OP_ADD =>
@@ -82,7 +81,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_SUB =>
@@ -93,7 +91,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_MUL =>
@@ -104,7 +101,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_NAND =>
@@ -115,7 +111,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_SHL =>
@@ -126,7 +121,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_SHR =>
@@ -137,7 +131,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_TEST =>
@@ -148,7 +141,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_OUT =>
@@ -159,7 +151,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '1';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
                     
                 when OP_IN =>
@@ -170,7 +161,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '1';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
 
                 -- branch relative
@@ -182,7 +172,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '1';                 -- always take branch
                     pc_mode <= PC_LOAD_NEW_VAL;
                     
                 when OP_BRR_N =>                      -- Branch relative if negative: PC = PC + imm if flag_neg
@@ -193,7 +182,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= flag_neg;            -- take branch only if negative flag set
                     if flag_neg = '1' then 
                         pc_mode <= PC_LOAD_NEW_VAL;
                     else
@@ -208,7 +196,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= flag_zero;           -- take branch only if zero flag set
                     if flag_zero = '1' then 
                         pc_mode <= PC_LOAD_NEW_VAL;
                     else
@@ -296,8 +283,7 @@ begin
                     wr_en_REG <= '1';
                     sel_WB    <= WB_MEM;
                     in_p_EN   <= '0';
-                    out_p_EN  <= '0';
-                    pc_src    <= '0';
+                    out_p_EN  <= '0';          
                     pc_mode   <= PC_INCREMENT;
 
                 when OP_STORE =>
@@ -308,7 +294,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode   <= PC_INCREMENT;
 
                 when OP_LOADIMM =>
@@ -319,7 +304,6 @@ begin
                         sel_WB    <= WB_AUX;
                         in_p_EN   <= '0';
                         out_p_EN  <= '0';
-                        pc_src    <= '0';
                         pc_mode   <= PC_INCREMENT;
 
                 when OP_MOV =>
@@ -330,7 +314,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode   <= PC_INCREMENT;
 
                 when others =>
@@ -341,7 +324,6 @@ begin
                     sel_WB    <= WB_ALU;
                     in_p_EN   <= '0';
                     out_p_EN  <= '0';
-                    pc_src    <= '0';
                     pc_mode <= PC_INCREMENT;
             end case;
         end if;      
