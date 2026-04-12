@@ -18,6 +18,7 @@ package constants_package is
     constant WB_ALU : std_logic_vector(1 downto 0) := "00";
     constant WB_MEM : std_logic_vector(1 downto 0) := "01";
     constant WB_PC2 : std_logic_vector(1 downto 0) := "10";
+    constant WB_AUX : std_logic_vector(1 downto 0) := "11";
 
     -- program counter modes
     constant PC_INCREMENT : std_logic_vector(1 downto 0) := "00"; -- increment the PC by 2 to point to the next instruction
