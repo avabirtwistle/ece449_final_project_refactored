@@ -21,6 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 use work.constants_package.all;
 use work.pipeline_registers.all;
 
@@ -52,8 +53,7 @@ architecture Behavioral of top_level_cpu is
     
     -- fetch stage outputs
     signal fetch_instruction: std_logic_vector(15 downto 0);
-    signal fetch_pc_plus2: std_logic_vector(15 downto 0);
-
+    signal fetch_pc: std_logic_vector(15 downto 0);
 
     -- decode stage outputs
     signal decode_rd_data1  : std_logic_vector(15 downto 0);
@@ -76,7 +76,7 @@ architecture Behavioral of top_level_cpu is
     signal decode_src2_reg  : std_logic_vector(2 downto 0); -- store what register index was used as the src 2 data
     signal decode_src1_used : std_logic; -- denotes if we wrote src1 (RAW prevention)
     signal decode_src2_used : std_logic; -- denotes if we wrote src2 (RAW prevention)
-    
+    signal decode_src1_needed_in_decode : std_logic; -- denotes if src1 reg is needed in the decode stage (for hazard detection)
     -- exec signals
     signal exec_rd_data2   : std_logic_vector(15 downto 0);
     signal exec_dest_reg   : std_logic_vector(2 downto 0);
@@ -84,7 +84,6 @@ architecture Behavioral of top_level_cpu is
     signal exec_wr_en_MEM  : std_logic;
     signal exec_reg_write  : std_logic;
     signal exec_wb_src     : std_logic_vector(1 downto 0);
-    signal exec_in_p_EN    : std_logic;
     signal exec_out_p_EN   : std_logic;
     signal exec_alu_result : std_logic_vector(15 downto 0);
     signal exec_flag_zero: std_logic;
@@ -99,46 +98,111 @@ architecture Behavioral of top_level_cpu is
     signal mem_pc_plus2   : std_logic_vector(15 downto 0);
     signal mem_reg_write  : std_logic;
     signal mem_wb_src     : std_logic_vector(1 downto 0);
-    signal mem_in_p_EN    : std_logic;
-    signal mem_out_p_EN   : std_logic;
     
     -- later-stage inputs back into decode
     signal write_back_addr_rf  : std_logic_vector(2 downto 0);
     signal write_back_en_rf   : std_logic;
     signal write_back_data_rf  : std_logic_vector(15 downto 0);
-
-
-    signal rom_enable: std_logic;
-    
+    signal pc_mode_effective : std_logic_vector(1 downto 0);
     -- signals for hazards pc_mode stall is when stall needed
     signal stall_pipe       : std_logic; -- asserted when RAW detected
     signal if_id_en         : std_logic; -- when asserted freezes the IF/ID register
     signal id_ex_flush      : std_logic; -- inserts a bubble into ID/EX while older instructions drain
+    signal fwd_a_sel        : std_logic_vector(1 downto 0); -- 00=id/ex, 01=ex/mem, 10=mem/wb
+    signal fwd_b_sel        : std_logic_vector(1 downto 0); -- 00=id/ex, 01=ex/mem, 10=mem/wb
+    signal ex_mem_forward_data : std_logic_vector(15 downto 0);
 begin
+    pc_mode_effective <= PC_STALL when stall_pipe = '1' else decode_pc_mode;
 
-rom_enable <= '1';
+    -- Stall only when decode needs a value before forwarding can supply it.
+    process(ID_EX_reg, EX_MEM_reg, decode_src1_reg, decode_src2_reg, decode_src1_used,
+            decode_src2_used, decode_src1_needed_in_decode)
+        variable load_use_hazard : std_logic;
+        variable decode_now_hazard : std_logic;
+    begin
+        load_use_hazard := '0';
+        decode_now_hazard := '0';
+
+        if ID_EX_reg.reg_write = '1' and ID_EX_reg.wb_src = WB_MEM then
+            if (decode_src1_used = '1' and decode_src1_reg = ID_EX_reg.dest_reg) or
+               (decode_src2_used = '1' and decode_src2_reg = ID_EX_reg.dest_reg) then
+                load_use_hazard := '1';
+            end if;
+        end if;
+
+        if decode_src1_needed_in_decode = '1' then
+            if (ID_EX_reg.reg_write = '1' and decode_src1_reg = ID_EX_reg.dest_reg) or
+               (EX_MEM_reg.reg_write = '1' and decode_src1_reg = EX_MEM_reg.dest_reg) then
+                decode_now_hazard := '1';
+            end if;
+        end if;
+
+        stall_pipe <= load_use_hazard or decode_now_hazard;
+    end process;
+
+    if_id_en    <= not stall_pipe;
+    id_ex_flush <= stall_pipe;
+
+    -- Execute-stage RAWs are resolved with forwarding instead of stalls.
+    process(ID_EX_reg, EX_MEM_reg, MEM_WB_reg)
+    begin
+        fwd_a_sel <= "00";
+        fwd_b_sel <= "00";
+
+        if ID_EX_reg.src1_used = '1' and EX_MEM_reg.reg_write = '1' and
+           EX_MEM_reg.wb_src /= WB_MEM and ID_EX_reg.src1_reg = EX_MEM_reg.dest_reg then
+            fwd_a_sel <= "01";
+        elsif ID_EX_reg.src1_used = '1' and MEM_WB_reg.reg_write = '1' and
+              ID_EX_reg.src1_reg = MEM_WB_reg.dest_reg then
+            fwd_a_sel <= "10";
+        end if;
+
+        if ID_EX_reg.src2_used = '1' and EX_MEM_reg.reg_write = '1' and
+           EX_MEM_reg.wb_src /= WB_MEM and ID_EX_reg.src2_reg = EX_MEM_reg.dest_reg then
+            fwd_b_sel <= "01";
+        elsif ID_EX_reg.src2_used = '1' and MEM_WB_reg.reg_write = '1' and
+              ID_EX_reg.src2_reg = MEM_WB_reg.dest_reg then
+            fwd_b_sel <= "10";
+        end if;
+    end process;
+
+    process(EX_MEM_reg)
+    begin
+        case EX_MEM_reg.wb_src is
+            when WB_ALU =>
+                ex_mem_forward_data <= EX_MEM_reg.alu_result;
+            when WB_PC2 =>
+                ex_mem_forward_data <= EX_MEM_reg.pc_plus2;
+            when WB_AUX =>
+                ex_mem_forward_data <= EX_MEM_reg.in_data;
+            when others =>
+                ex_mem_forward_data <= (others => '0');
+        end case;
+    end process;
+
     u_fetch: entity work.fetch
         port map(
             clk         => clk,
             reset       => reset,
-            rom_ena     => rom_enable,
-            mode        => decode_pc_mode,
+            pc_reset    => decode_pc_reset,
+            rom_ena     => '1',
+            mode        => pc_mode_effective,
             in_pc       => decode_branch_target,
             instruction => fetch_instruction,
-            pc => fetch_pc_plus2
-        );
+            pc => fetch_pc
+            );
         
     -- process for the IF_ID register
     IF_ID_proc: process(clk, reset)
         begin
             if rising_edge(clk) then
-                if reset = '1' or decode_pc_mode = PC_LOAD_NEW_VAL then
+                if reset = '1' or (decode_pc_mode = PC_LOAD_NEW_VAL and stall_pipe = '0') then
                     IF_ID_reg.instruction <= (others => '0'); -- flush pipeline
                     IF_ID_reg.pc_plus2 <= (others=>'0');
                     
-                else -- normal operation
+                elsif if_id_en = '1' then -- normal operation
                     IF_ID_reg.instruction <= fetch_instruction;
-                    IF_ID_reg.pc_plus2 <= fetch_pc_plus2;
+                    IF_ID_reg.pc_plus2 <= std_logic_vector(unsigned(fetch_pc) + 2);
                 end if;
             end if;
     end process;
@@ -173,11 +237,12 @@ rom_enable <= '1';
             out_p_EN       => decode_out_p_EN, -- todo determine what to do with this
             pc_mode        => decode_pc_mode,
             branch_target   => decode_branch_target,
-            pc_reset => decode_pc_reset,
+            pc_reset      => decode_pc_reset,
             src1_reg      => decode_src1_reg,
             src2_reg      => decode_src2_reg,
             src1_used     => decode_src1_used,
-            src2_used     => decode_src2_used
+            src2_used     => decode_src2_used,
+            src1_needed_in_decode => decode_src1_needed_in_decode
         );
 
 
@@ -191,13 +256,16 @@ rom_enable <= '1';
                     ID_EX_reg.rd_data2  <= (others => '0');
                     ID_EX_reg.imm       <= (others => '0');
                     ID_EX_reg.dest_reg  <= (others => '0');
+                    ID_EX_reg.src1_reg  <= (others => '0');
+                    ID_EX_reg.src2_reg  <= (others => '0');
+                    ID_EX_reg.src1_used <= '0';
+                    ID_EX_reg.src2_used <= '0';
                     ID_EX_reg.pc_plus2  <= (others => '0');
                     ID_EX_reg.alu_mode  <= ALU_NOP;
                     ID_EX_reg.alu_src   <= '0';
                     ID_EX_reg.wr_en_MEM <= '0';
                     ID_EX_reg.reg_write <= '0';
                     ID_EX_reg.wb_src    <= WB_ALU;
-                    ID_EX_reg.in_p_EN   <= '0';
                     ID_EX_reg.out_p_EN <= '0';
                     ID_EX_reg.shift_amt <= (others => '0');  
                     ID_EX_reg.in_data  <= (others => '0');          
@@ -206,20 +274,24 @@ rom_enable <= '1';
                     ID_EX_reg.rd_data2  <= decode_rd_data2;
                     ID_EX_reg.imm       <= decode_imm;
                     ID_EX_reg.dest_reg  <= decode_dest_reg;
+                    ID_EX_reg.src1_reg  <= decode_src1_reg;
+                    ID_EX_reg.src2_reg  <= decode_src2_reg;
+                    ID_EX_reg.src1_used <= decode_src1_used;
+                    ID_EX_reg.src2_used <= decode_src2_used;
                     ID_EX_reg.pc_plus2  <= decode_pc_plus2;
                     ID_EX_reg.alu_mode  <= decode_alu_mode;
                     ID_EX_reg.alu_src   <= decode_alu_src;
                     ID_EX_reg.wr_en_MEM <= decode_wr_en_MEM;
                     ID_EX_reg.reg_write <= decode_wr_en_REG;
                     ID_EX_reg.wb_src    <= decode_sel_WB;
-              --      ID_EX_reg.in_p_EN   <= decode_in_p_EN;
                     ID_EX_reg.out_p_EN <= decode_out_p_EN;
                     ID_EX_reg.shift_amt <= decode_shift_amt;  
-                    ID_EX_reg.in_data  <= in_port;  
-                    if decode_sel_WB = WB_AUX then 
-                        ID_EX_reg.in_data <= decode_imm; -- in data is load immediate
+                    if decode_in_p_EN = '1' then
+                        ID_EX_reg.in_data <= in_port;
+                    elsif decode_sel_WB = WB_AUX then 
+                        ID_EX_reg.in_data <= decode_imm;
                     else
-                        ID_EX_reg.in_data <= in_port; -- in data is from in port
+                        ID_EX_reg.in_data <= (others => '0');
                     end if;                    
                 end if;
             end if;
@@ -230,6 +302,10 @@ rom_enable <= '1';
         rd_data1      => ID_EX_reg.rd_data1,
         rd_data2      => ID_EX_reg.rd_data2,
         imm           => ID_EX_reg.imm,
+        ex_mem_value  => ex_mem_forward_data,
+        mem_wb_value  => write_back_data_rf,
+        fwd_a_sel     => fwd_a_sel,
+        fwd_b_sel     => fwd_b_sel,        
         dest_reg      => ID_EX_reg.dest_reg,
         pc_plus2      => ID_EX_reg.pc_plus2,
 
@@ -238,7 +314,6 @@ rom_enable <= '1';
         wr_en_MEM     => ID_EX_reg.wr_en_MEM,
         reg_write     => ID_EX_reg.reg_write,
         wb_src        => ID_EX_reg.wb_src,
-        in_p_EN       => ID_EX_reg.in_p_EN,
         out_p_EN      => ID_EX_reg.out_p_EN,
         shift_amount      => ID_EX_reg.shift_amt,
         alu_result        => exec_alu_result,
@@ -248,7 +323,6 @@ rom_enable <= '1';
         wr_en_MEM_out     => exec_wr_en_MEM,
         reg_write_out     => exec_reg_write,
         wb_src_out        => exec_wb_src,
-        in_p_EN_out       => exec_in_p_EN,
         out_p_EN_out      => exec_out_p_EN,
         flag_zero_out     => exec_flag_zero,
         flag_negative_out => exec_flag_neg,
@@ -269,7 +343,6 @@ rom_enable <= '1';
                 EX_MEM_reg.wr_en_MEM  <= '0';
                 EX_MEM_reg.reg_write  <= '0';
                 EX_MEM_reg.wb_src     <= WB_ALU;
-                EX_MEM_reg.in_p_EN    <= '0';
                 EX_MEM_reg.out_p_EN   <= '0';
                 EX_MEM_reg.in_data    <= (others => '0');
             else
@@ -280,7 +353,6 @@ rom_enable <= '1';
                 EX_MEM_reg.wr_en_MEM  <= exec_wr_en_MEM;
                 EX_MEM_reg.reg_write  <= exec_reg_write;
                 EX_MEM_reg.wb_src     <= exec_wb_src;
-                EX_MEM_reg.in_p_EN    <= exec_in_p_EN;
                 EX_MEM_reg.out_p_EN   <= exec_out_p_EN;
                 EX_MEM_reg.in_data    <= ID_EX_reg.in_data;
             end if;
@@ -299,7 +371,6 @@ rom_enable <= '1';
         wr_en_MEM   => EX_MEM_reg.wr_en_MEM,
         reg_write   => EX_MEM_reg.reg_write,
         wb_src      => EX_MEM_reg.wb_src,
-        in_p_EN     => EX_MEM_reg.in_p_EN,
         out_p_EN    => EX_MEM_reg.out_p_EN,
         alu_result_out  => mem_alu_result,
         mem_data_out    => mem_data,
@@ -307,8 +378,6 @@ rom_enable <= '1';
         pc_plus2_out    => mem_pc_plus2,
         reg_write_out   => mem_reg_write,
         wb_src_out      => mem_wb_src,
-        in_p_EN_out     => mem_in_p_EN,
-        out_p_EN_out    => mem_out_p_EN,
         out_port        => out_port
         );
     
@@ -323,8 +392,6 @@ rom_enable <= '1';
                 MEM_WB_reg.pc_plus2   <= (others => '0');
                 MEM_WB_reg.reg_write  <= '0';
                 MEM_WB_reg.wb_src     <= WB_ALU;
-                MEM_WB_reg.in_p_EN    <= '0';
-                MEM_WB_reg.out_p_EN   <= '0';
                 MEM_WB_reg.in_data    <= (others => '0');
             else
                 MEM_WB_reg.alu_result <= mem_alu_result;
@@ -333,8 +400,6 @@ rom_enable <= '1';
                 MEM_WB_reg.pc_plus2   <= mem_pc_plus2;
                 MEM_WB_reg.reg_write  <= mem_reg_write;
                 MEM_WB_reg.wb_src     <= mem_wb_src;
-                MEM_WB_reg.in_p_EN    <= mem_in_p_EN;
-                MEM_WB_reg.out_p_EN   <= mem_out_p_EN;
                 MEM_WB_reg.in_data    <= EX_MEM_reg.in_data;
             end if;
         end if;
@@ -349,12 +414,9 @@ rom_enable <= '1';
             pc_plus2     => MEM_WB_reg.pc_plus2,
             reg_write    => MEM_WB_reg.reg_write,
             wb_src       => MEM_WB_reg.wb_src,
-            in_p_EN      => MEM_WB_reg.in_p_EN,
-            out_p_EN     => MEM_WB_reg.out_p_EN,
             in_data      => MEM_WB_reg.in_data,
             wb_data      => write_back_data_rf,
             wb_dest_reg  => write_back_addr_rf,
-            wb_reg_write => write_back_en_rf,
-            out_port     => out_port
+            wb_reg_write => write_back_en_rf
         );
 end Behavioral;

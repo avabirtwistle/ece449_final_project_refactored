@@ -41,6 +41,7 @@ entity program_counter is
 Port ( 
     clk: in std_logic;
     reset: in std_logic;
+    pc_reset: in std_logic; -- signal to reset the program counter in fetch
     mode: in std_logic_vector(1 downto 0);
     in_pc: in std_logic_vector(15 downto 0); -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
 
@@ -55,7 +56,7 @@ begin
     process(clk)
     begin 
         if rising_edge(clk) then
-            if reset = '1' then
+            if reset = '1' or pc_reset = '1' then
                 if mode = PC_BOOT_MODE then
                     pc_curr <= PC_RESET_AND_LOAD_VAL;
                 else

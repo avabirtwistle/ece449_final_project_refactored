@@ -37,8 +37,7 @@ entity writeback is
 
         wb_data      : out std_logic_vector(15 downto 0);
         wb_dest_reg  : out std_logic_vector(2 downto 0);
-        wb_reg_write : out std_logic;
-        out_port     : out std_logic_vector(15 downto 0)
+        wb_reg_write : out std_logic
     );
 end writeback;
 

@@ -46,13 +46,14 @@ entity decode is
         -- controls toward fetch
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
-        pc_reset: out std_logic;
+        pc_reset      : out std_logic;
 
         -- outputs for hazard detection
         src1_reg      : out std_logic_vector(2 downto 0);
         src2_reg      : out std_logic_vector(2 downto 0);
         src1_used     : out std_logic; -- denotes if source 1 reg is used
-        src2_used     : out std_logic -- denotes if source 2 reg is used
+        src2_used     : out std_logic; -- denotes if source 2 reg is used
+        src1_needed_in_decode : out std_logic -- source 1 must be correct during decode, not later in execute
     );
 end decode;
 
@@ -105,10 +106,10 @@ begin
                 wr_en_MEM => wr_en_MEM,
                 wr_en_REG => wr_en_REG,
                 sel_WB    => sel_WB,
-                in_p_EN   => in_p_EN,
-                out_p_EN  => out_p_EN,
-                pc_mode => pc_mode_internal,
-                pc_reset => pc_reset
+                in_p_EN      => in_p_EN,
+                out_p_EN     => out_p_EN,
+                pc_mode      => pc_mode_internal,
+                pc_reset     => pc_reset
             );
     -- send the internal signals to the output ports
     rd_data1 <= rd_data1_internal;
@@ -127,6 +128,7 @@ begin
     begin
         src1_used <= '0';
         src2_used <= '0';
+        src1_needed_in_decode <= '0';
 
         case opcode_internal is
             when OP_ADD | OP_SUB | OP_MUL | OP_NAND =>
@@ -135,6 +137,9 @@ begin
 
             when OP_LOAD | OP_MOV | OP_LOADIMM =>
                 src1_used <= '1';
+                if opcode_internal = OP_LOADIMM then
+                    src1_needed_in_decode <= '1';
+                end if;
 
             when OP_STORE =>
                 src1_used <= '1';
@@ -148,13 +153,14 @@ begin
 
             when OP_BR | OP_BR_N | OP_BR_Z | OP_BR_SUB | OP_RETURN =>
                 src1_used <= '1';
+                src1_needed_in_decode <= '1';
 
             when others =>
                 null;
         end case;
     end process;
 
-    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal)    
+    process(opcode_internal, disp, pc_plus2_internal, pc_mode_internal, rd_data1_internal, instruction)
     begin
             imm           <= (others => '0'); 
             branch_target <= (others => '0'); -- this is fed to the fetch stage as the value the PC should load

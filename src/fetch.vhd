@@ -23,6 +23,7 @@ entity fetch is
     port(
         clk     : in  std_logic; -- clock is used by the register file
         reset   : in  std_logic; -- reset is used by the register file
+        pc_reset    : in  std_logic;
         rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
         mode   : in  std_logic_vector(1 downto 0); -- selects the mode for the program counter (increment, loading immediate value, etc.)
         in_pc   : in  std_logic_vector(15 downto 0); -- the immediate value to load into the program counter when mode is PC_IM_VALUE
@@ -41,11 +42,12 @@ begin
     -- instantiate the program counter and connect the ports appropriately
     program_counter: entity work.program_counter
         port map ( 
-            clk => clk,
-            reset => reset,
-            mode => mode,
-            out_pc => pc_sig_internal, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
-            in_pc => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
+            clk      => clk,
+            reset    => reset,
+            pc_reset => pc_reset,
+            mode     => mode,
+            out_pc   => pc_sig_internal, -- out_pc is the current value of the program counter that will be used to fetch the instruction from ROM
+            in_pc    => in_pc -- in_pc is the immediate value to load into the program counter when mode is PC_IM_VALUE
         );
 
 -- Instantiate the ROM here and connect the ports appropriately

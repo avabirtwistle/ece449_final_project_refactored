@@ -33,8 +33,8 @@ entity controller is
         out_p_EN    : out std_logic;
 
         -- Branch / PC Control
-        pc_mode       : out std_logic_vector(1 downto 0); -- controls what happens to program counter in fetch
-        pc_reset : out std_logic
+        pc_mode       : out std_logic_vector(1 downto 0) -- controls what happens to program counter in fetch
+        pc_reset       : out std_logic -- signal to reset the program counter in fetch
     );
 end controller;
 
@@ -42,7 +42,7 @@ end controller;
 architecture Behavioral of controller is
      
 begin
-    fsm_seq : process(opcode, reset, flag_zero, flag_neg, boot_mode)
+    fsm_seq : process(opcode, reset, flag_zero, flag_neg, flag_overflow, boot_mode)
     begin
         mode_ALU  <= ALU_NOP;
         src_ALU   <= '0';
@@ -55,12 +55,12 @@ begin
         pc_reset <= '0'; -- for reseting the program counter in the fetch module
 
         if reset = '1' then
+                pc_reset <= '1';
                 if boot_mode = '1' then -- reset and execute
                     pc_mode <= PC_BOOT_MODE; 
                 else
                     pc_mode <= PC_INCREMENT; -- reset and load, the program counter just needs pc_reset =1 and the pc_mode to not be PC_BOOT_MODE in order to recognize this state
                 end if;
-                pc_reset<='1'; -- output the reset is 1 for both cases
         else -- no reset then check opcode to determine control signals for the instruction
             case opcode is
                 when OP_NOP =>
@@ -158,7 +158,7 @@ begin
                     src_ALU   <= '0';
                     wr_en_MEM <= '0';
                     wr_en_REG <= '1';
-                    sel_WB    <= WB_ALU;
+                    sel_WB    <= WB_AUX;
                     in_p_EN   <= '1';
                     out_p_EN  <= '0';
                     pc_mode <= PC_INCREMENT;
