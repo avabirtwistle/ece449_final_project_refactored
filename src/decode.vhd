@@ -56,7 +56,16 @@ entity decode is
         src1_reg      : out std_logic_vector(2 downto 0);
         src2_reg      : out std_logic_vector(2 downto 0);
         src1_used     : out std_logic;
-        src2_used     : out std_logic
+        src2_used     : out std_logic;
+
+        dbg_r0        : out std_logic_vector(15 downto 0);
+        dbg_r1        : out std_logic_vector(15 downto 0);
+        dbg_r2        : out std_logic_vector(15 downto 0);
+        dbg_r3        : out std_logic_vector(15 downto 0);
+        dbg_r4        : out std_logic_vector(15 downto 0);
+        dbg_r5        : out std_logic_vector(15 downto 0);
+        dbg_r6        : out std_logic_vector(15 downto 0);
+        dbg_r7        : out std_logic_vector(15 downto 0)
     );
 end decode;
 
@@ -101,7 +110,15 @@ begin
                 r_addr0 => source_1_internal,
                 r_addr1 => source_2_internal,
                 r_data0 => rd_data1_internal, -- internal signal so we can output this to the decode output port and so it can be used for branch calc
-                r_data1 => rd_data2_internal
+                r_data1 => rd_data2_internal,
+                dbg_r0  => dbg_r0,
+                dbg_r1  => dbg_r1,
+                dbg_r2  => dbg_r2,
+                dbg_r3  => dbg_r3,
+                dbg_r4  => dbg_r4,
+                dbg_r5  => dbg_r5,
+                dbg_r6  => dbg_r6,
+                dbg_r7  => dbg_r7
             );
 
         u_controller : entity work.controller

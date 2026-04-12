@@ -38,7 +38,9 @@ entity register_file is
         w_addr: in std_logic_vector(2 downto 0);
         w_data: in std_logic_vector(15 downto 0);
         r_addr0, r_addr1: in std_logic_vector(2 downto 0);
-        r_data0, r_data1: out std_logic_vector(15 downto 0)
+        r_data0, r_data1: out std_logic_vector(15 downto 0);
+        dbg_r0, dbg_r1, dbg_r2, dbg_r3: out std_logic_vector(15 downto 0);
+        dbg_r4, dbg_r5, dbg_r6, dbg_r7: out std_logic_vector(15 downto 0)
   );
 end register_file;
 
@@ -94,5 +96,14 @@ begin
      -- r_data1 <= array_reg(to_integer(unsigned(r_addr1)));
      r_data0 <= w_data when (wr_en = '1' and w_addr = r_addr0) else array_reg(to_integer(unsigned(r_addr0)));
      r_data1 <= w_data when (wr_en = '1' and w_addr = r_addr1) else array_reg(to_integer(unsigned(r_addr1)));
+
+     dbg_r0 <= array_reg(0);
+     dbg_r1 <= array_reg(1);
+     dbg_r2 <= array_reg(2);
+     dbg_r3 <= array_reg(3);
+     dbg_r4 <= array_reg(4);
+     dbg_r5 <= array_reg(5);
+     dbg_r6 <= array_reg(6);
+     dbg_r7 <= array_reg(7);
      
 end rtl;

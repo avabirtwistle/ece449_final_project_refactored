@@ -14,6 +14,14 @@ architecture sim of tb_FormatBTest2 is
     signal boot_mode : std_logic := '0';
     signal in_port   : std_logic_vector(15 downto 0) := (others => '0');
     signal out_port  : std_logic_vector(15 downto 0);
+    signal debug_console : std_logic := '0';
+    signal vga_red       : std_logic_vector(3 downto 0);
+    signal vga_green     : std_logic_vector(3 downto 0);
+    signal vga_blue      : std_logic_vector(3 downto 0);
+    signal h_sync_signal : std_logic;
+    signal v_sync_signal : std_logic;
+    signal led_segments  : std_logic_vector(6 downto 0);
+    signal led_digits    : std_logic_vector(3 downto 0);
 
     constant INPUTS : slv16_array_t(0 to 7) := (
         x"0002", -- R0
@@ -32,7 +40,15 @@ begin
             rst       => rst,
             boot_mode => boot_mode,
             in_port   => in_port,
-            out_port  => out_port
+            out_port  => out_port,
+            debug_console => debug_console,
+            vga_red       => vga_red,
+            vga_green     => vga_green,
+            vga_blue      => vga_blue,
+            h_sync_signal => h_sync_signal,
+            v_sync_signal => v_sync_signal,
+            led_segments  => led_segments,
+            led_digits    => led_digits
         );
 
     clk <= not clk after 5 ns;
