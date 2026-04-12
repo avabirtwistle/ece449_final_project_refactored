@@ -20,6 +20,8 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+library work; 
+use work.constants_package.all;
 
 entity writeback is
     Port (
@@ -30,8 +32,6 @@ entity writeback is
 
         reg_write    : in  std_logic;
         wb_src       : in  std_logic_vector(1 downto 0);
-        in_p_EN      : in  std_logic;
-        out_p_EN     : in  std_logic;
 
         in_data      : in  std_logic_vector(15 downto 0);
 
@@ -57,14 +57,10 @@ begin
         );
 
     -- Final writeback data:
-    -- normal WB mux result, unless this is an IN instruction
-    wb_data <= in_data when in_p_EN = '1' else mux_out;
+    -- Auxiliary writeback covers synthesized immediates and carried input-port values.
+    wb_data <= in_data when wb_src = WB_AUX else mux_out;
 
     -- Pass through register file control info
     wb_dest_reg  <= dest_reg;
     wb_reg_write <= reg_write;
-
-    -- OUT instruction drives external output port
-    out_port <= mux_out when out_p_EN = '1' else (others => '0');
-
 end Behavioral;

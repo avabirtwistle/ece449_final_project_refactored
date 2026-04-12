@@ -194,18 +194,18 @@ begin
         
     -- process for the IF_ID register
     IF_ID_proc: process(clk, reset)
-        begin
-            if rising_edge(clk) then
-                if reset = '1' or (decode_pc_mode = PC_LOAD_NEW_VAL and stall_pipe = '0') then
-                    IF_ID_reg.instruction <= (others => '0'); -- flush pipeline
-                    IF_ID_reg.pc_plus2 <= (others=>'0');
-                    
-                elsif if_id_en = '1' then -- normal operation
-                    IF_ID_reg.instruction <= fetch_instruction;
-                    IF_ID_reg.pc_plus2 <= std_logic_vector(unsigned(fetch_pc) + 2);
-                end if;
+    begin
+        if rising_edge(clk) then
+            if reset = '1' or pc_mode_effective = PC_LOAD_NEW_VAL then
+                IF_ID_reg.instruction <= (others => '0');
+                IF_ID_reg.pc_plus2    <= (others => '0');
+            elsif if_id_en = '1' then
+                IF_ID_reg.instruction <= fetch_instruction;
+                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc) + 2);
             end if;
+        end if;
     end process;
+
     
         -- component instantiation
     u_decode: entity work.decode
@@ -234,14 +234,14 @@ begin
             wr_en_REG      => decode_wr_en_REG,
             sel_WB         => decode_sel_WB,
             in_p_EN         => decode_in_p_EN,
-            out_p_EN       => decode_out_p_EN, -- todo determine what to do with this
-            pc_mode        => decode_pc_mode,
+            out_p_EN        => decode_out_p_EN, -- carried forward to memory for OUT / mapped output writes
+            pc_mode         => decode_pc_mode,
             branch_target   => decode_branch_target,
-            pc_reset      => decode_pc_reset,
-            src1_reg      => decode_src1_reg,
-            src2_reg      => decode_src2_reg,
-            src1_used     => decode_src1_used,
-            src2_used     => decode_src2_used,
+            pc_reset        => decode_pc_reset,
+            src1_reg        => decode_src1_reg,
+            src2_reg        => decode_src2_reg,
+            src1_used       => decode_src1_used,
+            src2_used       => decode_src2_used,
             src1_needed_in_decode => decode_src1_needed_in_decode
         );
 

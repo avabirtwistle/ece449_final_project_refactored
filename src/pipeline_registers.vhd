@@ -15,6 +15,10 @@ package pipeline_registers is
         rd_data2  : std_logic_vector(15 downto 0); -- obtained from rd_index2
         imm       : std_logic_vector(15 downto 0); -- immediate value
         dest_reg  : std_logic_vector(2 downto 0); --destination register index
+        src1_reg  : std_logic_vector(2 downto 0); -- source register index for forwarding/hazard handling
+        src2_reg  : std_logic_vector(2 downto 0); -- source register index for forwarding/hazard handling
+        src1_used : std_logic; -- tracks whether source 1 is consumed in execute
+        src2_used : std_logic; -- tracks whether source 2 is consumed in execute
         pc_plus2  : std_logic_vector(15 downto 0);
 
         alu_mode  : std_logic_vector(2 downto 0); -- selects mode of ALU

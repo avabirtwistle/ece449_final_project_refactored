@@ -39,7 +39,6 @@ entity memory is
         wr_en_MEM     : in  std_logic;
         reg_write     : in  std_logic;
         wb_src        : in  std_logic_vector(1 downto 0);
-        in_p_EN       : in  std_logic;
         out_p_EN      : in  std_logic;
 
         -- OUTPUTS to MEM/WB
@@ -50,8 +49,6 @@ entity memory is
 
         reg_write_out  : out std_logic;
         wb_src_out     : out std_logic_vector(1 downto 0);
-        in_p_EN_out    : out std_logic;
-        out_p_EN_out   : out std_logic;
 
         -- external output port
         out_port       : out std_logic_vector(15 downto 0)
@@ -137,7 +134,5 @@ begin
 
     reg_write_out  <= reg_write;
     wb_src_out     <= wb_src;
-    in_p_EN_out    <= in_p_EN;
-    out_p_EN_out   <= out_p_EN;
 
 end Behavioral;
