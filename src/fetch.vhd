@@ -1,8 +1,4 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 02/02/2026 04:35:50 PM
 -- Design Name:
 -- Module Name: register_file -
 -- Project Name:
@@ -25,22 +21,21 @@ use work.constants_package.all;
 
 entity fetch is
     port(
-        clk     : in  std_logic;
-        reset   : in  std_logic;
+        clk     : in  std_logic; -- clock is used by the register file
+        reset   : in  std_logic; -- reset is used by the register file
         rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
         mode   : in  std_logic_vector(1 downto 0); -- selects the mode for the program counter (increment, loading immediate value, etc.)
         in_pc   : in  std_logic_vector(15 downto 0); -- the immediate value to load into the program counter when mode is PC_IM_VALUE
 
-        -- signals that flow into the IF/ID pipeline register
+        -- output signals that flow into the IF/ID pipeline register
         pc      : out  std_logic_vector(15 downto 0); -- the current value of the program counter that will be used to fetch the instruction from ROM
         instruction : out std_logic_vector(15 downto 0) -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
     );
 end fetch;
 
 architecture Behavioral of fetch is 
-    -- internal signal to connect the program counter output to the ROM address input
-    signal pc_sig_internal : std_logic_vector(15 downto 0);
-    signal instruction_sig_internal : std_logic_vector(15 downto 0);
+    signal pc_sig_internal : std_logic_vector(15 downto 0); -- internal signal to connect the program counter to the rom
+    signal instruction_sig_internal : std_logic_vector(15 downto 0); -- internal instruction 
 begin
 
     -- instantiate the program counter and connect the ports appropriately
