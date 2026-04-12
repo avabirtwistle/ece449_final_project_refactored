@@ -25,16 +25,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 use work.constants_package.all;
-use work.pipeline_registers.all;  -- gives IF_ID, ID_EX, EX_MEM record types
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use work.pipeline_registers.all;  
 
 entity execute is
  port(
@@ -44,7 +35,7 @@ entity execute is
    --    wb_dest       : in  std_logic_vector(2 downto 0);
    --    wb_data       : in  std_logic_vector(15 downto 0);
 
-----------INPUTS from id/ex ---------------------------------------
+         -- from ID/EX pipeline register
         rd_data1   : in std_logic_vector(15 downto 0);
         rd_data2   : in std_logic_vector(15 downto 0);
         imm        : in std_logic_vector(15 downto 0);
@@ -58,10 +49,9 @@ entity execute is
         wb_src     : in std_logic_vector(1 downto 0);
         in_p_EN    : in std_logic; -- think should be ride along
         out_p_EN   : in std_logic; -- think should be ride along
-        shift_amount: in  std_logic_vector(3 downto 0) ;                                  -- two flags could occur at the same time.
+        shift_amount: in  std_logic_vector(3 downto 0) ;                                
 
---------------OUTPUTS to ex/mem---------------------------------
-
+        -- outputs to EX/MEM pipeline register
         alu_result : out std_logic_vector(15 downto 0);
         rd_data2_out : out std_logic_vector(15 downto 0);
         dest_reg_out : out std_logic_vector(2 downto 0);
@@ -72,56 +62,43 @@ entity execute is
         wb_src_out    : out std_logic_vector(1 downto 0);
         in_p_EN_out   : out std_logic; -- shouldnt these just be ridealongs? do i need thsee?
         out_p_EN_out  : out std_logic; -- shouldnt these just be ridealongs? 
-        flag_zero_out     : out std_logic; -- I feel like the flags should be just a 2 bit number to tell which flag is selected
-        flag_negative_out : out std_logic; -- 00 = no flags, 01 = zero out, 10 = negative out 11 = carry out, but i guess we can 
-        flag_carry_out    : out std_logic -- the only thing stopping me from doing this is if there is a case when 
-
-   );
+        flag_zero_out     : out std_logic; 
+        flag_negative_out : out std_logic; 
+        flag_carry_out    : out std_logic;
+        flag_overflow_out : out std_logic 
+    );                                  
 end execute;
 
 architecture Behavioral of execute is
-
-    -- Internal ALU signals
-    signal source_1_data_internal : std_logic_vector(15 downto 0);
+    -- Internal input signals to the ALU 
+    signal source_1_data_internal : std_logic_vector(15 downto 0); 
     signal source_2_data_internal : std_logic_vector(15 downto 0);
-    signal result_internal        : std_logic_vector(15 downto 0);
-    signal control_sel_internal   : std_logic_vector(2 downto 0);
 
+    -- internal output signals from the ALU
+    signal result_internal        : std_logic_vector(15 downto 0);
     signal flag_zero_internal     : std_logic;
     signal flag_negative_internal : std_logic;
     signal flag_carry_internal    : std_logic;
-    signal shift_amount_internal    : std_logic_vector(3 downto 0);
+    signal flag_overflow_internal : std_logic;
+    signal shift_amount_internal  : std_logic_vector(3 downto 0);
 begin
+    source_1_data_internal <= rd_data1; -- connect input data 1 to the internal signal 
+    source_2_data_internal <= rd_data2 when alu_src = '0' else imm;  -- map the input data2 to  register data 2 when alu_src = '0'otherwise use the immediate value
 
-    ------------------------------------------------------------------------
-    -- Combinational input selection for ALU
-    ------------------------------------------------------------------------
-    source_1_data_internal <= rd_data1;
-
-    -- alu_src = '0' -> use register operand
-    -- alu_src = '1' -> use immediate
-    source_2_data_internal <= rd_data2 when alu_src = '0' else imm;
-
-    control_sel_internal <= alu_mode;
-
-    ------------------------------------------------------------------------
-    -- ALU instance
-    ------------------------------------------------------------------------
+    -- instantiate the ALU
     u_alu : entity work.Alu
         port map(
             shift_amount => shift_amount_internal,
             a           => source_1_data_internal,
             b           => source_2_data_internal,
             result      => result_internal,
-            control_sel => control_sel_internal,
+            control_sel => alu_mode, -- direct conection
             Carry       => flag_carry_internal,
             Zero        => flag_zero_internal,
-            Negative    => flag_negative_internal
+            Negative    => flag_negative_internal,
+            Overflow    => flag_overflow_internal
         );
 
-    ------------------------------------------------------------------------
-    -- Outputs to EX/MEM
-    ------------------------------------------------------------------------
     alu_result    <= result_internal;
     rd_data2_out  <= rd_data2;     -- needed later for STORE instructions
     dest_reg_out  <= dest_reg;
@@ -133,11 +110,9 @@ begin
     in_p_EN_out   <= in_p_EN;
     out_p_EN_out  <= out_p_EN;
 
-    ------------------------------------------------------------------------
-    -- Flag outputs
-    ------------------------------------------------------------------------
+    -- map the internal signals to the outputs for flags
     flag_zero_out     <= flag_zero_internal;
     flag_negative_out <= flag_negative_internal;
     flag_carry_out    <= flag_carry_internal;
-
+    flag_overflow_out <= flag_overflow_internal;
 end Behavioral;
