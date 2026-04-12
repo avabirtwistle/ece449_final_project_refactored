@@ -23,6 +23,7 @@ entity decode is
         flag_zero     : in  std_logic;
         flag_neg      : in  std_logic;
         flag_carry    : in  std_logic;
+        flag_overflow    : in  std_logic;
         boot_mode     : in  std_logic; -- this is fed through the top level
 
         --*********** ID/EX  ***********
@@ -46,7 +47,6 @@ entity decode is
         pc_mode       : out std_logic_vector(1 downto 0);
         branch_target : out std_logic_vector(15 downto 0);
         pc_reset: out std_logic;
-        rom_enable: out std_logic;
 
         -- outputs for hazard detection
         src1_reg      : out std_logic_vector(2 downto 0);
@@ -64,7 +64,7 @@ architecture Behavioral of decode is
     signal rd_data1_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
     signal rd_data2_internal            : std_logic_vector(15 downto 0); -- needed for output and branch calculation
     signal pc_mode_internal          : std_logic_vector(1 downto 0); -- we need to read this in a process and also output the mode to fetch
-    signal disp: signed(15 downto 0);
+    signal disp: signed(15 downto 0); -- needed for intermediate calculation 
     signal pc_plus2_internal         : std_logic_vector(15 downto 0);
 begin
 
@@ -98,6 +98,7 @@ begin
                 opcode    => opcode_internal,
                 flag_zero => flag_zero,
                 flag_neg  => flag_neg,
+                flag_overflow => flag_overflow,
                 boot_mode => boot_mode,
                 mode_ALU  => alu_mode,
                 src_ALU   => alu_src,
@@ -107,8 +108,7 @@ begin
                 in_p_EN   => in_p_EN,
                 out_p_EN  => out_p_EN,
                 pc_mode => pc_mode_internal,
-                pc_reset => pc_reset,
-                rom_enable => rom_enable
+                pc_reset => pc_reset
             );
     -- send the internal signals to the output ports
     rd_data1 <= rd_data1_internal;
@@ -116,7 +116,7 @@ begin
     pc_mode <= pc_mode_internal; 
     pc_plus2_out <= pc_plus2_in;
     pc_plus2_internal <= pc_plus2_in;
-    shift_amt     <= shift_amt_internal;
+
 
     -- allow top level to monitor which source registers are being used for hazard detection
     src1_reg      <= source_1_internal;
