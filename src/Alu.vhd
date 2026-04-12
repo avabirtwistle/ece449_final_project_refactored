@@ -92,20 +92,19 @@ begin
 
             -- shift left A by n = low 4 bits of B
             when "101" =>
-                if shift_amount = 0 then
+                if to_integer(unsigned(shift_amount)) = 0 then
                     temp_result := a;
                 else
-                    temp_result := std_logic_vector(shift_left(unsigned(a), to_integer(shift_amount)));
+                    temp_result := std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(shift_amount))));
                 end if;
                 Carry <= '0';
 
             -- logical shift right A by n = low 4 bits of B
             when "110" =>
-                shift_amount := to_integer(unsigned(b(3 downto 0)));
-                if shift_amount = 0 then
+                if to_integer(unsigned(shift_amount)) = 0 then
                     temp_result := a;
                 else
-                    temp_result := std_logic_vector(shift_right(unsigned(a), to_integer(shift_amount)));
+                    temp_result := std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(shift_amount))));
                 end if;
                 Carry <= '0';
 
