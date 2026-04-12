@@ -67,7 +67,22 @@ begin
                 
                 when OP_RETURN => -- format b3
                     source_1 <= LINK_REGISTER; -- we want to read from the link register index
-                
+                when OP_LOAD => -- Format L
+                    destination_reg <= instruction(8 downto 6);
+                    source_1        <= instruction(5 downto 3);
+
+                when OP_STORE => -- Format L
+                    source_1 <= instruction(8 downto 6);
+                    source_2 <= instruction(5 downto 3);
+
+                when OP_LOADIMM => -- Format L
+                    destination_reg <= LINK_REGISTER;
+                    source_1        <= LINK_REGISTER;
+
+                when OP_MOV => -- Format L
+                    destination_reg <= instruction(8 downto 6);
+                    source_1        <= instruction(5 downto 3);
+              
                 when others=>
                     null;
             end case;

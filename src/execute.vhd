@@ -80,7 +80,7 @@ architecture Behavioral of execute is
     signal flag_negative_internal : std_logic;
     signal flag_carry_internal    : std_logic;
     signal flag_overflow_internal : std_logic;
-    signal shift_amount_internal  : std_logic_vector(3 downto 0);
+
 begin
     source_1_data_internal <= rd_data1; -- connect input data 1 to the internal signal 
     source_2_data_internal <= rd_data2 when alu_src = '0' else imm;  -- map the input data2 to  register data 2 when alu_src = '0'otherwise use the immediate value
@@ -88,7 +88,7 @@ begin
     -- instantiate the ALU
     u_alu : entity work.Alu
         port map(
-            shift_amount => shift_amount_internal,
+            shift_amount => shift_amount,
             a           => source_1_data_internal,
             b           => source_2_data_internal,
             result      => result_internal,

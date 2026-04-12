@@ -115,6 +115,8 @@ architecture Behavioral of top_level_cpu is
     signal if_id_en         : std_logic; -- when asserted freezes the IF/ID register
     signal id_ex_flush      : std_logic; -- inserts a bubble into ID/EX while older instructions drain
 begin
+
+rom_enable <= '1';
     u_fetch: entity work.fetch
         port map(
             clk         => clk,
