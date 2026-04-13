@@ -201,11 +201,11 @@ begin
                 IF_ID_reg.pc_plus2    <= (others => '0');
             elsif if_id_en = '1' then -- operate as normal
                 IF_ID_reg.instruction <= fetch_instruction;
-                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc));
-            end if;            
+                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc));            
             else -- hold the value in our register, this means there is a stall
                 IF_ID_reg.instruction <= IF_ID_reg.instruction;
                 IF_ID_reg.pc_plus2    <= IF_ID_reg.pc_plus2;
+             end if;         
         end if;
     end process;
 

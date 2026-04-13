@@ -1,8 +1,0 @@
-INFO: [VRFC 10-163] Analyzing VHDL file "/home/sulley/Desktop/ece449_final_project_refactored/src/RegisterFile.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'register_file'
-INFO: [VRFC 10-163] Analyzing VHDL file "/home/sulley/Desktop/ece449_final_project_refactored/src/decode.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'decode'
-INFO: [VRFC 10-163] Analyzing VHDL file "/home/sulley/Desktop/ece449_final_project_refactored/src/top_level_cpu.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'top_level_cpu'
-INFO: [VRFC 10-163] Analyzing VHDL file "/home/sulley/Downloads/tb_FormatBTest1.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'tb_FormatBTest1'
