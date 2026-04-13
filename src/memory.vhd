@@ -119,7 +119,7 @@ begin
 
     -- Port B instruction fetch
     ram_enb   <= instr_fetch_en; 
-    ram_addrb <= instr_fetch_addr(9 downto 1);
+    ram_addrb <= instr_fetch_addr(9 downto 1); -- word-aligned address for instruction fetch
     instr_fetch_data <= ram_doutb;
 
     -- update external output on OUT instruction or mapped write to 0xFFF2
