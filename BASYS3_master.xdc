@@ -9,8 +9,8 @@
 	#create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports clk]
  
 ## Switches
-set_property PACKAGE_PIN V17 [get_ports {in_port[0]}]					
-	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[0]}]
+#set_property PACKAGE_PIN V17 [get_ports {in_port[0]}]					
+#	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[0]}]
 set_property PACKAGE_PIN V16 [get_ports {in_port[1]}]					
 	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[1]}]
 set_property PACKAGE_PIN W16 [get_ports {in_port[2]}]					
@@ -39,9 +39,8 @@ set_property PACKAGE_PIN V15 [get_ports {in_port[5]}]
 #	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[13]}]
 #set_property PACKAGE_PIN T1 [get_ports {in_port[14]}]					
 #	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[14]}]
-#set_property PACKAGE_PIN R2 [get_ports {in_port[15]}]					
-#	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[15]}]
- 
+set_property PACKAGE_PIN R2 [get_ports boot_mode]
+	set_property IOSTANDARD LVCMOS33 [get_ports boot_mode]
 
 ## LEDs
 #set_property PACKAGE_PIN U16 [get_ports {out_port[0]}]					
@@ -108,8 +107,8 @@ set_property PACKAGE_PIN L1 [get_ports {out_port[15]}]
 
 
 ##Buttons
-#set_property PACKAGE_PIN U18 [get_ports btnC]						
-	#set_property IOSTANDARD LVCMOS33 [get_ports btnC]
+set_property PACKAGE_PIN U18 [get_ports reset]
+	set_property IOSTANDARD LVCMOS33 [get_ports reset]
 #set_property PACKAGE_PIN T18 [get_ports btnU]						
 	#set_property IOSTANDARD LVCMOS33 [get_ports btnU]
 #set_property PACKAGE_PIN W19 [get_ports btnL]						
@@ -179,8 +178,9 @@ set_property PACKAGE_PIN C16 [get_ports {in_port[15]}]
 
 ##Pmod Header JC
 ##Sch name = JC1
-set_property PACKAGE_PIN K17 [get_ports {clk}]					
-	set_property IOSTANDARD LVCMOS33 [get_ports {clk}]
+set_property PACKAGE_PIN K17 [get_ports clk]
+	set_property IOSTANDARD LVCMOS33 [get_ports clk]
+		create_clock -name ext_clk -period 125.000 [get_ports clk]
 ##Sch name = JC2
 #set_property PACKAGE_PIN M18 [get_ports {JC[1]}]					
 	#set_property IOSTANDARD LVCMOS33 [get_ports {JC[1]}]
