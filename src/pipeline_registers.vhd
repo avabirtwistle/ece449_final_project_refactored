@@ -31,7 +31,6 @@ package pipeline_registers is
         -- Write-back control signals (riding along to WB)
         reg_write : std_logic;
         wb_src    : std_logic_vector(1 downto 0);
-        in_p_EN   : std_logic;
         out_p_EN  : std_logic;
         in_data   : std_logic_vector(15 downto 0);
 

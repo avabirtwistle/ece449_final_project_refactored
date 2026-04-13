@@ -195,14 +195,17 @@ begin
     -- process for the IF_ID register
     IF_ID_proc: process(clk, reset)
     begin
-        if rising_edge(clk) then
-            if reset = '1' or pc_mode_effective = PC_LOAD_NEW_VAL then
+        if rising_edge(clk) then -- if we need to reset or we have loaded a new value in the program counter
+            if reset = '1' or pc_mode_effective = PC_LOAD_NEW_VAL then -- flush out the pipeline register
                 IF_ID_reg.instruction <= (others => '0');
                 IF_ID_reg.pc_plus2    <= (others => '0');
-            elsif if_id_en = '1' then
+            elsif if_id_en = '1' then -- operate as normal
                 IF_ID_reg.instruction <= fetch_instruction;
-                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc)+2);
-            end if;
+                IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc));
+            end if;            
+            else -- hold the value in our register, this means there is a stall
+                IF_ID_reg.instruction <= IF_ID_reg.instruction;
+                IF_ID_reg.pc_plus2    <= IF_ID_reg.pc_plus2;
         end if;
     end process;
 

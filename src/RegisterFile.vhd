@@ -48,7 +48,6 @@ type reg_file_type is array (7 downto 0) of std_logic_vector(15 downto 0);
 
 signal array_reg: reg_file_type; -- this signal represents the current state of the register file values, we will update this on the rising edge of the clock with the next state values stored in array_next
 signal array_next: reg_file_type; -- we need this signal to hold the next state of the register file values so we can update them all at once on the rising edge of the clock
-signal en: std_logic_vector(7 downto 0); -- we need this signal to determine which register to update on a write, we will set the bit corresponding to the index of the register we want to write to and set all other bits to 0, then we can use this signal to update the next state of the register file values in a combinational process
 
 begin
     process(clk,reset) -- process to update the state of the register file 
