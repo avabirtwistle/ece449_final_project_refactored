@@ -99,6 +99,7 @@ architecture Behavioral of top_level_cpu is
     signal mem_pc_plus2   : std_logic_vector(15 downto 0);
     signal mem_reg_write  : std_logic;
     signal mem_wb_src     : std_logic_vector(1 downto 0);
+    signal ram_instruction: std_logic_vector(15 downto 0); -- instruction fetched from RAM 
     
     -- later-stage inputs back into decode
     signal write_back_addr_rf  : std_logic_vector(2 downto 0);
@@ -114,6 +115,8 @@ architecture Behavioral of top_level_cpu is
     signal ex_mem_forward_data : std_logic_vector(15 downto 0);
 begin
     pc_mode_effective <= PC_STALL when stall_pipe = '1' else decode_pc_mode;
+    use_ram_fetch <= '1' when fetch_pc(15 downto 10) = "000001" else '0';
+    selected_instruction <= ram_instruction when use_ram_fetch = '1' else fetch_instruction;
 
     -- Stall only when decode needs a value before forwarding can supply it.
     process(ID_EX_reg, EX_MEM_reg, decode_src1_reg, decode_src2_reg, decode_src1_used,
@@ -384,7 +387,7 @@ begin
         wb_src_out      => mem_wb_src,
         out_port        => out_port, -- this is the part when we output to the ports
         instr_fetch_en   => instr_fetch_en,
-        instr_fetch_addr => instr_fetch_addr,
+        instr_fetch_addr => rom_instruction_sig_internal,
         instr_fetch_data => instr_fetch_data
         );
     

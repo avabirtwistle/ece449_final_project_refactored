@@ -33,12 +33,9 @@ entity fetch is
         rom_ena  : in  std_logic; -- enable signal for the ROM (can be used to stall the fetch stage when needed)
         mode   : in  std_logic_vector(1 downto 0); -- selects the mode for the program counter (increment, loading immediate value, etc.)
         in_pc   : in  std_logic_vector(15 downto 0); -- the immediate value to load into the program counter when mode is PC_IM_VALUE
-
         -- output signals that flow into the IF/ID pipeline register
         pc      : out  std_logic_vector(15 downto 0); -- the current value of the program counter that will be used to fetch the instruction from ROM
-        instruction : out std_logic_vector(15 downto 0); -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
-        use_ram_instruction : in  std_logic;
-        ram_instruction     : in  std_logic_vector(15 downto 0)
+        instruction : out std_logic_vector(15 downto 0)-- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
 
     );
 end fetch;
@@ -70,5 +67,5 @@ begin
     );
 
     pc <= pc_sig_internal; -- connect the internal signal to the output port to pass the current value of the program counter to the IF/ID pipeline register
-    instruction <= ram_instruction when use_ram_instruction = '1' else rom_instruction_sig_internal; -- decide to use ram instruction source or rom 
+    instruction <= rom_instruction_sig_internal; 
 end Behavioral;
