@@ -87,8 +87,4 @@ package constants_package is
     -- Link/return register
     constant LINK_REGISTER      : std_logic_vector(2 downto 0) := "111"; -- 7, return from interrupt (jump to address in r7 and restore r7 with value at top of stack, increment stack pointer)
 
-    -- RAM address space 
-    constant RAM_BASE  : unsigned(15 downto 0) := to_unsigned(16#0200#, 16); 
-    constant RAM_LIMIT : unsigned(15 downto 0) := to_unsigned(16#0600#, 16); 
-
 end package constants_package;
