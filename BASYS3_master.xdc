@@ -6,11 +6,11 @@
 ## Clock signal
 set_property PACKAGE_PIN W5 [get_ports board_clock]
       set_property IOSTANDARD LVCMOS33 [get_ports board_clock]
-	#create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports clk]
+	create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports board_clock]
  
 ## Switches
-#set_property PACKAGE_PIN V17 [get_ports {in_port[0]}]					
-#	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[0]}]
+set_property PACKAGE_PIN V17 [get_ports {in_port[0]}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[0]}]
 set_property PACKAGE_PIN V16 [get_ports {in_port[1]}]					
 	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[1]}]
 set_property PACKAGE_PIN W16 [get_ports {in_port[2]}]					
@@ -182,9 +182,10 @@ set_property PACKAGE_PIN C16 [get_ports {in_port[15]}]
 set_property PACKAGE_PIN K17 [get_ports clk]
 	set_property IOSTANDARD LVCMOS33 [get_ports clk]
 		create_clock -name ext_clk -period 125.000 [get_ports clk]
+##		set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets clk_IBUF]
 ##Sch name = JC2
-#set_property PACKAGE_PIN M18 [get_ports {JC[1]}]					
-	#set_property IOSTANDARD LVCMOS33 [get_ports {JC[1]}]
+set_property PACKAGE_PIN M18 [get_ports {out_port[0]}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {out_port[0]}]
 ##Sch name = JC3
 #set_property PACKAGE_PIN N17 [get_ports {JC[2]}]					
 	#set_property IOSTANDARD LVCMOS33 [get_ports {JC[2]}]
