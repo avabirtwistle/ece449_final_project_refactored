@@ -95,8 +95,8 @@ begin
        enb => enb,       -- 1-bit input: Memory enable signal for port B. Must be high on clock cycles when read
                          -- or write operations are initiated. Pipelined internally.
     
-       regcea => '1', -- 1-bit input: Clock Enable for the last register stage on the output data path.
-       regceb => '1', -- 1-bit input: Do not change from the provided value.
+       regcea => '0', -- 1-bit input: Clock Enable for the last register stage on the output data path.
+       regceb => '0', -- 1-bit input: Do not change from the provided value.
        rsta => rst,     -- 1-bit input: Reset signal for the final port A output register stage. Synchronously
                          -- resets output port douta to the value specified by parameter READ_RESET_VALUE_A.
     
