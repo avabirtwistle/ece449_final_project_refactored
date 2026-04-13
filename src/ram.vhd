@@ -65,8 +65,8 @@ begin
        MESSAGE_CONTROL => 0,            --  enables the dynamic message reporting such as collision warnings when 1
        READ_DATA_WIDTH_A => 16,         -- the size of chunks that you can read from memory at a time (port B)
        READ_DATA_WIDTH_B => 16,         -- the size of chunks that you can read from memory at a time (port A)
-       READ_LATENCY_A => 1,             -- number of pipeline registers between the memory and port
-       READ_LATENCY_B => 1,             -- number of pipeline regiwsters betweent the memory and port
+       READ_LATENCY_A => 0,             -- number of pipeline registers between the memory and port
+       READ_LATENCY_B => 0,             -- number of pipeline regiwsters betweent the memory and port
        READ_RESET_VALUE_A => "0",       -- resets the port A to all 0
        READ_RESET_VALUE_B => "0",       -- resets the port b to all 0
        RST_MODE_A => "SYNC",            -- synchronous reset
