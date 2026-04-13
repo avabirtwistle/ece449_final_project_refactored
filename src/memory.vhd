@@ -53,7 +53,13 @@ entity memory is
         wb_src_out     : out std_logic_vector(1 downto 0);
 
         -- external output port
-        out_port       : out std_logic_vector(15 downto 0)
+        out_port       : out std_logic_vector(15 downto 0);
+
+        -- inputs for instruction fetch (for load instructions)
+        instr_fetch_en   : in  std_logic; -- enable signal for instruction fetch
+        instr_fetch_addr : in  std_logic_vector(15 downto 0); -- address for where to fetch instruction
+        instr_fetch_data : out std_logic_vector(15 downto 0) -- data output for instruction fetch
+
     );
 end memory;
 
@@ -111,8 +117,10 @@ begin
     ram_addra <= alu_result(9 downto 1);   -- word-aligned RAM address
     ram_dina  <= rd_data2;
 
-    ram_enb   <= '0';
-    ram_addrb <= (others => '0');
+    -- Port B instruction fetch
+    ram_enb   <= instr_fetch_en; 
+    ram_addrb <= instr_fetch_addr(9 downto 1);
+    instr_fetch_data <= ram_doutb;
 
     -- update external output on OUT instruction or mapped write to 0xFFF2
     process(clk, rst)
