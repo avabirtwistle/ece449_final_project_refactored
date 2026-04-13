@@ -112,8 +112,16 @@ architecture Behavioral of top_level_cpu is
     signal fwd_a_sel        : std_logic_vector(1 downto 0); -- 00=id/ex, 01=ex/mem, 10=mem/wb
     signal fwd_b_sel        : std_logic_vector(1 downto 0); -- 00=id/ex, 01=ex/mem, 10=mem/wb
     signal ex_mem_forward_data : std_logic_vector(15 downto 0);
+
+    -- signals for the instruction fetching logic
+    signal use_ram_fetch : std_logic; -- denotes to use the instruction fetched from ram when asserted
+    signal selected_instruction : std_logic_vector(15 downto 0); -- the instruction that is selected to be passed to the IF/ID pipeline register (from either rom or ram)
+    signal ram_instruction: std_logic_vector(15 downto 0); -- instruction fetched from RAM, set by memory unit
+
 begin
     pc_mode_effective <= PC_STALL when stall_pipe = '1' else decode_pc_mode;
+    use_ram_fetch <= '1' when fetch_pc(15 downto 10) = "000001" else '0';
+    selected_instruction <= ram_instruction when use_ram_fetch = '1' else fetch_instruction;
 
     -- Stall only when decode needs a value before forwarding can supply it.
     process(ID_EX_reg, EX_MEM_reg, decode_src1_reg, decode_src2_reg, decode_src1_used,
@@ -201,7 +209,7 @@ begin
                 IF_ID_reg.instruction <= (others => '0');
                 IF_ID_reg.pc_plus2    <= (others => '0');
             elsif if_id_en = '1' then -- operate as normal
-                IF_ID_reg.instruction <= fetch_instruction;
+                IF_ID_reg.instruction <= selected_instruction; -- load the instruction from either the rom or the ram
                 IF_ID_reg.pc_plus2    <= std_logic_vector(unsigned(fetch_pc)+2);            
             else -- hold the value in our register, this means there is a stall
                 IF_ID_reg.instruction <= IF_ID_reg.instruction;
@@ -382,7 +390,10 @@ begin
         pc_plus2_out    => mem_pc_plus2,
         reg_write_out   => mem_reg_write,
         wb_src_out      => mem_wb_src,
-        out_port        => out_port -- this is the part when we output to the ports
+        out_port        => out_port, -- this is the part when we output to the ports
+        instr_fetch_en   => use_ram_fetch,
+        instr_fetch_addr => fetch_pc,
+        instr_fetch_data => ram_instruction
         );
     
     -- MEM/WB pipeline register

@@ -46,7 +46,7 @@ package constants_package is
     constant PC_STALL           : std_logic_vector(1 downto 0) := "10"; -- hold the current value of the PC (no update)
     constant PC_BOOT_MODE         : std_logic_vector(1 downto 0) := "11"; -- when asserted with reset, then load mode reset vector is loaded
     constant PC_RESET_AND_EXECUTE_VAL        : std_logic_vector(15 downto 0) := x"0000"; -- value loaded on program start, when reset is '1' and mode is not PC_BOOT_MODE
-    constant PC_RESET_AND_LOAD_VAL        : std_logic_vector(15 downto 0) := x"0210"; -- load mode reset vector
+    constant PC_RESET_AND_LOAD_VAL        : std_logic_vector(15 downto 0) := x"0002"; -- load mode reset vector
 
 
     -- The opcode values for the instruction types
