@@ -36,13 +36,16 @@ entity fetch is
 
         -- output signals that flow into the IF/ID pipeline register
         pc      : out  std_logic_vector(15 downto 0); -- the current value of the program counter that will be used to fetch the instruction from ROM
-        instruction : out std_logic_vector(15 downto 0) -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
+        instruction : out std_logic_vector(15 downto 0); -- the instruction fetched from ROM that will be passed to the IF/ID pipeline register
+        use_ram_instruction : in  std_logic;
+        ram_instruction     : in  std_logic_vector(15 downto 0)
+
     );
 end fetch;
 
 architecture Behavioral of fetch is 
     signal pc_sig_internal : std_logic_vector(15 downto 0); -- internal signal to connect the program counter to the rom
-    signal instruction_sig_internal : std_logic_vector(15 downto 0); -- internal instruction 
+    signal rom_instruction_sig_internal : std_logic_vector(15 downto 0);
 begin
 
     -- instantiate the program counter and connect the ports appropriately
@@ -63,9 +66,9 @@ begin
         rst => reset,
         ena   => rom_ena,
         addra => pc_sig_internal(9 downto 1), -- 9-bit address input to access 512 words (16 bits each) but we need pc=0b0001 to map to 0b0000 in rom and pc=0b00010 to map to 0b0001 in rom (drop lsb)
-        douta => instruction_sig_internal -- 16-bit data output from ROM
+        douta => rom_instruction_sig_internal -- 16-bit data output from ROM
     );
 
     pc <= pc_sig_internal; -- connect the internal signal to the output port to pass the current value of the program counter to the IF/ID pipeline register
-    instruction <= instruction_sig_internal; -- connect the internal signal to the output port to pass the fetched instruction to the IF/ID pipeline register
+    instruction <= ram_instruction when use_ram_instruction = '1' else rom_instruction_sig_internal; -- decide to use ram instruction source or rom 
 end Behavioral;
