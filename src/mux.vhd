@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 -- 
 -- Create Date: 04/04/2026 11:06:18 AM
 -- Design Name: 
 -- Module Name: MUX - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements a 3-input, 16-bit multiplexer. It selects
+-- one of three input values based on the control signal and drives zero on the
+-- output for unused selector combinations.
 -- 
 -- Dependencies: 
 -- 
@@ -42,7 +44,7 @@ entity MUX is
    );
 end MUX;
 
-architecture Behavioral of MUX is
+architecture Behavioral of MUX is -- selects a b or c input data to output at d_out depending on control bits. default is d = 0x0000;
 signal d : std_logic_vector(15 downto 0) := (others => '0');
 begin
     d_out <= a when (control_sel = "00") else 

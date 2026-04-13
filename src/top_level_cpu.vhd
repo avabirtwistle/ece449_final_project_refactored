@@ -1,16 +1,17 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria
+-- Engineer: Robin Zerr / Ava Birtwistle
 -- 
 -- Create Date: 03/28/2026 04:26:59 PM
--- Design Name: 
--- Module Name: top_level - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
+-- Design Name: top_level_cpu
+-- Module Name: top_level_cpu - Behavioral
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file defines the top-level wiring for the complete 16-bit CPU.
+-- It integrates the major datapath and control components required to support
+-- Format A, Format B, and Format L instruction types within a Harvard architecture.
+-- The design also includes hazard handling for signed overflow conditions.
 -- 
 -- Revision:
 -- Revision 0.01 - File Created

@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria
+-- Engineer: Robin Zerr / Ava Birtwistle
 -- 
 -- Create Date: 04/04/2026 11:06:18 AM
 -- Design Name: 
 -- Module Name: MUX - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements a 3-input, 16-bit multiplexer. It selects
+-- one of three input values based on the control signal and drives zero on the
+-- output for unused selector combinations.
 -- 
 -- Dependencies: 
 -- 

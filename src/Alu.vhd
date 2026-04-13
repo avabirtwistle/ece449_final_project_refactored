@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 --
 -- Create Date: 02/02/2026 04:35:50 PM
 -- Design Name:
--- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Module Name: Alu -
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the 16-bit arithmetic logic unit used by the
+-- CPU execute stage. It performs arithmetic, logical, shift, and test operations
+-- and generates the carry, zero, negative, and overflow status flags.
 --
 -- Dependencies:
 --

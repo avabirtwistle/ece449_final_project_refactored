@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 -- 
 -- Create Date: 03/29/2026 11:17:36 AM
 -- Design Name: 
 -- Module Name: memory - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the memory stage of the 16-bit CPU. It
+-- handles RAM accesses, memory-mapped output operations, and forwards the
+-- appropriate data and control signals to the MEM/WB pipeline stage.
 -- 
 -- Dependencies: 
 -- 

@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 -- 
 -- Create Date: 03/29/2026 11:17:36 AM
 -- Design Name: 
--- Module Name: memory - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Module Name: writeback- Behavioral
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the writeback stage of the 16-bit CPU. It
+-- selects the final value to return to the register file and forwards the
+-- associated destination register and write-enable control signals.
 -- 
 -- Dependencies: 
 -- 

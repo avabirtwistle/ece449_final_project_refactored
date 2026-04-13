@@ -1,13 +1,16 @@
--- Company: 
--- Engineer: 
+----------------------------------------------------------------------------------
+-- University of Victoria 
+-- Engineer: Ava Birtwistle / Robin Zerr
 -- 
 -- Create Date: 02/09/2026 04:54:41 PM
 -- Design Name: 
 -- Module Name: ProgramCounter - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the program counter used by the fetch stage
+-- of the 16-bit CPU. It supports reset, sequential incrementing, and loading a
+-- new address for branch, jump, or immediate program counter updates.
 -- 
 -- Dependencies: 
 -- 

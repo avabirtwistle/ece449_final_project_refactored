@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- University of Victoria 
+-- Engineer: Ava Birtwistle / Robin Zerr
 -- 
 -- Create Date: 03/28/2026 11:49:37 AM
 -- Design Name: 
 -- Module Name: execute - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the execute stage of the 16-bit CPU. It
+-- selects ALU operands from the ID/EX pipeline register, performs the requested
+-- operation, updates status flags, and forwards results to the EX/MEM stage.
 -- 
 -- Dependencies: 
 -- 

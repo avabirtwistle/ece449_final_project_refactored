@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- University of Victoria
+-- Engineer: Robin Zerr / Ava Birtwistle
+--
+-- Create Date: 03/28/2026 04:26:59 PM
+-- Design Name: Top_Level_CPU
+-- Module Name: Top_Level_CPU - Behavioral
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1
+-- Tool Versions: Vivado 2025.2
+-- Description: This file defines an earlier top-level integration of the 16-bit
+-- CPU. It connects the major pipeline stages, shared packages, and external I/O
+-- ports needed to operate the processor as a complete system.
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;

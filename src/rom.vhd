@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- University of Victoria 
+-- Engineer: Ava Birtwistle / Robin Zerr
 --
 -- Create Date: 02/02/2026 04:35:50 PM
 -- Design Name:
--- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Module Name: rom -
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the instruction memory for the 16-bit CPU
+-- using a Xilinx single-port ROM primitive. It stores the program image and
+-- provides synchronous instruction fetches based on the program counter address.
 --
 -- Dependencies:
 --
@@ -44,7 +46,11 @@ begin
         ADDR_WIDTH_A         => 9, -- address width (number of bits used to address memory depth)
         AUTO_SLEEP_TIME      => 0,
         ECC_MODE             => "no_ecc",
+<<<<<<< Updated upstream
         MEMORY_INIT_FILE     => "FactorialTest.mem",
+=======
+        MEMORY_INIT_FILE     => "FormatBTest1.mem", -- update this field with the mem files used for simulation
+>>>>>>> Stashed changes
         MEMORY_INIT_PARAM    => "0",
         MEMORY_OPTIMIZATION  => "true",
         MEMORY_PRIMITIVE     => "distributed",

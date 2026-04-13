@@ -1,3 +1,27 @@
+----------------------------------------------------------------------------------
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
+--
+-- Create Date: 02/02/2026 04:35:50 PM
+-- Design Name:
+-- Module Name: controller -
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the control unit for the 16-bit CPU. It
+-- decodes the instruction opcode along with processor flags and boot mode to
+-- generate datapath, memory, writeback, and program counter control signals.
+--
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
+
+
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;

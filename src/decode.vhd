@@ -1,3 +1,26 @@
+----------------------------------------------------------------------------------
+-- University of Victoria 
+-- Engineer: Ava Birtwistle / Robin Zerr
+--
+-- Create Date: 02/02/2026 04:35:50 PM
+-- Design Name:
+-- Module Name: decode
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the decode stage of the 16-bit CPU. It
+-- interprets the fetched instruction, reads source operands from the register
+-- file, generates immediates, and produces control signals for the ID/EX stage.
+--
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -26,7 +49,7 @@ entity decode is
         flag_overflow    : in  std_logic;
         boot_mode     : in  std_logic; -- this is fed through the top level
 
-        --*********** ID/EX  ***********
+        --ID/EX 
         -- data outputs
         rd_data1      : out std_logic_vector(15 downto 0); -- value read from RF for source 1
         rd_data2      : out std_logic_vector(15 downto 0); -- value read from RF for source 2
@@ -165,7 +188,7 @@ begin
             imm           <= (others => '0'); 
             branch_target <= (others => '0'); -- this is fed to the fetch stage as the value the PC should load
 
-         -- *****Controller Signaled Operation Requires Load PC with New Value*****
+         -- Controller Signaled Operation Requires Load PC with New Value
         if pc_mode_internal = PC_LOAD_NEW_VAL then
             -- check the opcode to determine what value to load into the PC for the branch target
             case opcode_internal is
@@ -183,7 +206,7 @@ begin
             end case;
         end if;
 
-        -- ** Controller Signaled Operation Requires Building Immediate Value**
+        -- Controller Signaled Operation Requires Building Immediate Value
         if opcode_internal = OP_LOADIMM then
             if instruction(8) = '0' then
                 imm <= rd_data1_internal(15 downto 8) & instruction(7 downto 0); -- keep upper byte, load immediate into lower byte

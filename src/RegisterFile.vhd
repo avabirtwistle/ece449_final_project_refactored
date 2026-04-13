@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 --
 -- Create Date: 02/02/2026 04:35:50 PM
 -- Design Name:
 -- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the 8-register, 16-bit register file used by
+-- the CPU. It supports synchronous writes, two combinational read ports, and
+-- simple same-cycle forwarding to handle read-after-write behavior.
 --
 -- Dependencies:
 --

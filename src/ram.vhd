@@ -1,14 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- University of Victoria 
+-- Engineer: Robin Zerr / Ava Birtwistle
 --
 -- Create Date: 02/02/2026 04:35:50 PM
 -- Design Name:
--- Module Name: register_file -
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Module Name: ram -
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1 
+-- Tool Versions: Vivado 2025-2
+-- Description: This file implements the CPU data memory using a Xilinx dual-port
+-- distributed RAM primitive. It provides a read/write port for processor memory
+-- access and a secondary read port for additional observation or future expansion.
 --
 -- Dependencies:
 --

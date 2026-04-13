@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- University of Victoria
+-- Engineer: Robin Zerr / Ava Birtwistle
+--
+-- Create Date: 03/28/2026 04:26:59 PM
+-- Design Name: pipeline_registers
+-- Module Name: pipeline_registers
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1
+-- Tool Versions: Vivado 2025.2
+-- Description: This package defines the record types used for the CPU pipeline
+-- registers. It groups the data and control signals passed between the IF/ID,
+-- ID/EX, EX/MEM, and MEM/WB stages.
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

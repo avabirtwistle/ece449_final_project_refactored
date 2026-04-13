@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- University of Victoria
+-- Engineer: Robin Zerr / Ava Birtwistle
+--
+-- Create Date: 02/02/2026 04:35:50 PM
+-- Design Name: constants_package
+-- Module Name: constants_package
+-- Project Name: 16 Bit CPU
+-- Target Devices: Artix-7 xc7a100tcsg324-1
+-- Tool Versions: Vivado 2025.2
+-- Description: This package defines shared constants used throughout the 16-bit
+-- CPU design. It includes ALU modes, writeback selection signals, program counter
+-- control modes, opcodes, and memory-mapped I/O addresses.
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
