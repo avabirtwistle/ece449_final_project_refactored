@@ -41,7 +41,17 @@ entity top_level_cpu is
         reset: in std_logic;
         boot_mode: in std_logic;
         in_port: in std_logic_vector(15 downto 0);
-        out_port: out std_logic_vector(15 downto 0)
+        out_port: out std_logic_vector(15 downto 0);
+        debug_console : in STD_LOGIC;
+        board_clock: in std_logic;
+
+        vga_red : out std_logic_vector( 3 downto 0 );
+        vga_green : out std_logic_vector( 3 downto 0 );
+        vga_blue : out std_logic_vector( 3 downto 0 );
+        h_sync_signal : out std_logic;
+        v_sync_signal : out std_logic;
+        led_segments : out STD_LOGIC_VECTOR( 6 downto 0 );
+        led_digits : out STD_LOGIC_VECTOR( 3 downto 0 )  
         );
 end top_level_cpu;
     
@@ -118,7 +128,150 @@ architecture Behavioral of top_level_cpu is
     signal selected_instruction : std_logic_vector(15 downto 0); -- the instruction that is selected to be passed to the IF/ID pipeline register (from either rom or ram)
     signal ram_instruction: std_logic_vector(15 downto 0); -- instruction fetched from RAM, set by memory unit
 
+
+-- debug signals
+    signal reg0_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg1_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg2_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg3_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg4_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg5_dbg_internal: std_logic_vector(15 downto 0);
+    signal reg6_dbg_internal: std_logic_vector(15 downto 0);     
+    signal reg7_dbg_internal: std_logic_vector(15 downto 0);   
+   
 begin
+    led_display_memory: entity work.led
+        port map(
+            addr_write => s2_memory_write_address,
+            clk => clk,
+            data_in => s2_memory_write_data,
+            en_write => s2_memory_write_enable,
+            
+            board_clock => board_clock,
+            led_segments => led_segments,
+            led_digits => led_digits
+        );
+
+
+    u_console: entity work.console
+    port map(
+        ----
+---- Stage 1 Fetch
+----
+  s1_pc => IF_ID_reg.pc_plus2,
+   s1_inst => IF_ID_reg.instruction,
+
+----
+---- Stage 2 Decode
+----
+
+   s2_pc => decode_pc_plus2,
+   s2_inst => x"0000",
+
+  s2_reg_a => ID_EX_reg.dest_reg,
+   s2_reg_b => ID_EX_reg.src1_reg,
+   s2_reg_c => ID_EX_reg.src2_reg,
+
+    s2_reg_a_data => x"0000",
+   s2_reg_b_data => ID_EX_reg.rd_data1,
+   s2_reg_c_data => ID_EX_reg.rd_data2,
+  s2_immediate => ID_EX_reg.imm,
+
+----
+---- Stage 3 Execute
+----
+
+   s3_pc => EX_MEM_reg.pc_plus2,
+   s3_inst => x"0000",
+
+    s3_reg_a => EX_MEM_reg.dest_reg,
+    s3_reg_b => "000",
+    s3_reg_c => "000",
+
+    s3_reg_a_data => x"0000",
+   s3_reg_b_data => x"0000",
+   s3_reg_c_data => x"0000",
+    s3_immediate => x"0000",
+
+    s3_r_wb => EX_MEM_reg.reg_write,
+   s3_r_wb_data => EX_MEM_reg.alu_result,
+
+   s3_br_wb => '0',
+s3_br_wb_address => x"0000",
+
+    s3_mr_wr => EX_MEM_reg.wr_en_MEM,
+    s3_mr_wr_address => EX_MEM_reg.alu_result,
+    s3_mr_wr_data => EX_MEM_reg.rd_data2,
+
+   s3_mr_rd => '0',
+    s3_mr_rd_address => x"0000",
+
+----
+---- Stage 4 Memory
+----
+
+   s4_pc => MEM_WB_reg.pc_plus2,
+    s4_inst => x"0000",
+    s4_reg_a => MEM_WB_reg.dest_reg,
+    s4_r_wb => MEM_WB_reg.reg_write,
+   s4_r_wb_data => write_back_data_rf,
+
+----
+---- CPU registers
+----
+
+   register_0 => reg0_dbg_internal,
+    register_1 => reg1_dbg_internal,
+   register_2 => reg2_dbg_internal,
+    register_3 => reg3_dbg_internal,
+    register_4 => reg4_dbg_internal,
+   register_5 => reg5_dbg_internal,
+   register_6 => reg6_dbg_internal,
+    register_7 => reg7_dbg_internal,
+
+    register_0_of => '0',
+   register_1_of => '0',
+    register_2_of => '0',
+   register_3_of => '0',
+   register_4_of => '0',
+    register_5_of => '0',
+    register_6_of => '0',
+   register_7_of => '0',
+
+----
+---- CPU Flags
+----
+   zero_flag => '0',
+   negative_flag => '0',
+    overflow_flag => '0',
+
+----
+---- Debug screen enable
+----
+    debug => debug_console,
+
+----
+---- Text console display memory access signals ( clk is the processor clock )
+----
+
+  clk => '0',
+  addr_write => x"0000",
+   data_in => x"0000",
+   en_write => '0',
+
+----
+---- Video related signals
+----
+
+   board_clock => board_clock,
+   h_sync_signal => h_sync_signal,
+   v_sync_signal => v_sync_signal,
+   vga_red => vga_red,
+    vga_green => vga_green,
+   vga_blue => vga_blue
+    );
+        
+
     pc_mode_effective <= PC_STALL when stall_pipe = '1' else decode_pc_mode;
     use_ram_fetch <= '1' when fetch_pc(15 downto 10) = "000001" else '0';
     selected_instruction <= ram_instruction when use_ram_fetch = '1' else fetch_instruction;
@@ -254,7 +407,16 @@ begin
             src2_reg        => decode_src2_reg,
             src1_used       => decode_src1_used,
             src2_used       => decode_src2_used,
-            src1_needed_in_decode => decode_src1_needed_in_decode
+            src1_needed_in_decode => decode_src1_needed_in_decode,
+            --debug signals
+            reg0_dbg => reg0_dbg_internal,
+            reg1_dbg => reg1_dbg_internal,
+            reg2_dbg => reg2_dbg_internal,
+            reg3_dbg => reg3_dbg_internal,
+            reg4_dbg => reg4_dbg_internal,
+            reg5_dbg => reg5_dbg_internal,
+            reg6_dbg => reg6_dbg_internal,
+            reg7_dbg => reg7_dbg_internal
         );
 
 
@@ -299,7 +461,7 @@ begin
                     ID_EX_reg.out_p_EN <= decode_out_p_EN;
                     ID_EX_reg.shift_amt <= decode_shift_amt;  
                     if decode_in_p_EN = '1' then -- if decode indicates we want to use data on input port
-                        ID_EX_reg.in_data <= in_port; -- then the input data should be the source
+                        ID_EX_reg.in_data <= (15 downto 1 => '0') & in_port(14 downto 0); -- then the input data should be the source
                     elsif decode_sel_WB = WB_AUX then  -- otherwise it is immediate value
                         ID_EX_reg.in_data <= decode_imm; -- load immediate value produced in decode
                     else
