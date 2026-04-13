@@ -44,7 +44,7 @@ begin
         ADDR_WIDTH_A         => 9, -- address width (number of bits used to address memory depth)
         AUTO_SLEEP_TIME      => 0,
         ECC_MODE             => "no_ecc",
-        MEMORY_INIT_FILE     => "FormatBTest3.mem",
+        MEMORY_INIT_FILE     => "FormatLTest1.mem",
         MEMORY_INIT_PARAM    => "0",
         MEMORY_OPTIMIZATION  => "true",
         MEMORY_PRIMITIVE     => "distributed",

@@ -185,7 +185,7 @@ begin
             clk         => clk,
             reset       => reset,
             pc_reset    => decode_pc_reset,
-            rom_ena     => '1',
+            rom_ena     => if_id_en,
             mode        => pc_mode_effective,
             in_pc       => decode_branch_target,
             instruction => fetch_instruction,
@@ -289,12 +289,12 @@ begin
                     ID_EX_reg.wb_src    <= decode_sel_WB;
                     ID_EX_reg.out_p_EN <= decode_out_p_EN;
                     ID_EX_reg.shift_amt <= decode_shift_amt;  
-                    if decode_in_p_EN = '1' then
-                        ID_EX_reg.in_data <= in_port;
-                    elsif decode_sel_WB = WB_AUX then 
-                        ID_EX_reg.in_data <= decode_imm;
+                    if decode_in_p_EN = '1' then -- if decode indicates we want to use data on input port
+                        ID_EX_reg.in_data <= in_port; -- then the input data should be the source
+                    elsif decode_sel_WB = WB_AUX then  -- otherwise it is immediate value
+                        ID_EX_reg.in_data <= decode_imm; -- load immediate value produced in decode
                     else
-                        ID_EX_reg.in_data <= (others => '0');
+                        ID_EX_reg.in_data <= (others => '0'); -- if we arent using either, set to 0
                     end if;                    
                 end if;
             end if;
@@ -381,7 +381,7 @@ begin
         pc_plus2_out    => mem_pc_plus2,
         reg_write_out   => mem_reg_write,
         wb_src_out      => mem_wb_src,
-        out_port        => out_port
+        out_port        => out_port -- this is the part when we output to the ports
         );
     
     -- MEM/WB pipeline register
