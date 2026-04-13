@@ -382,7 +382,10 @@ begin
         pc_plus2_out    => mem_pc_plus2,
         reg_write_out   => mem_reg_write,
         wb_src_out      => mem_wb_src,
-        out_port        => out_port -- this is the part when we output to the ports
+        out_port        => out_port, -- this is the part when we output to the ports
+        instr_fetch_en   => instr_fetch_en,
+        instr_fetch_addr => instr_fetch_addr,
+        instr_fetch_data => instr_fetch_data
         );
     
     -- MEM/WB pipeline register
