@@ -37,9 +37,9 @@ set_property PACKAGE_PIN V15 [get_ports {in_port[5]}]
 #	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[12]}]
 #set_property PACKAGE_PIN U1 [get_ports {in_port[13]}]					
 #	set_property IOSTANDARD LVCMOS33 [get_ports {in_port[13]}]
-set_property PACKAGE_PIN T1 [get_ports get_ports boot_mode]					
-	set_property IOSTANDARD LVCMOS33 [get_ports get_ports boot_mode]
-set_property PACKAGE_PIN R2 [get_ports debug_console]           # use switch 15 to display debug or text display
+set_property PACKAGE_PIN T1 [get_ports boot_mode]					
+	set_property IOSTANDARD LVCMOS33 [ get_ports boot_mode]
+set_property PACKAGE_PIN R2 [get_ports debug_console]          
       set_property IOSTANDARD LVCMOS33 [get_ports debug_console]
 
 
